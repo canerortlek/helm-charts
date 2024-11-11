@@ -29,39 +29,39 @@ jobs:
           sed -i "s/^version: .*/version: ${{ github.event.inputs.release_version }}/" charts/podiumd/Chart.yaml
           sed -i "s/^appVersion: .*/appVersion: ${{ github.event.inputs.release_version }}/" charts/podiumd/Chart.yaml
 
-      - name: Extract Grafana Version from README.md
-        id: extract_grafana_version
+      - name: Extract Open Klant Version from README.md
+        id: extract_Open Klant_version
         run: |
-          # Extract the version for Grafana from README.md
-          GRAFANA_VERSION=$(grep -A 1 -i "Grafana" README.md | awk '{print $2}' | head -n 1)
+          # Extract the version for Open Klant from README.md
+          Open Klant_VERSION=$(grep -A 1 -i "Open Klant" charts/podiumd/README.md | awk '{print $2}' | head -n 1)
           
           # Verify the extracted version and set it as an output
-          if [ -z "$GRAFANA_VERSION" ]; then
-            echo "Grafana version not found in README.md."
+          if [ -z "$Open Klant_VERSION" ]; then
+            echo "Open Klant version not found in README.md."
             exit 1
           fi
-          echo "Found Grafana version: $GRAFANA_VERSION"
-          echo "::set-output name=grafana_version::$GRAFANA_VERSION"
+          echo "Found Open Klant version: $Open Klant_VERSION"
+          echo "::set-output name=Open Klant_version::$Open Klant_VERSION"
 
-      - name: Fetch Grafana Changelog for Specific Version
-        id: fetch_grafana_changelog
+      - name: Fetch Open Klant Changelog for Specific Version
+        id: fetch_Open Klant_changelog
         run: |
-          # Define the URL to the changelog in the Grafana repository
-          GRAFANA_CHANGELOG_URL="https://raw.githubusercontent.com/grafana/helm-charts/main/charts/promtail/CHANGELOG.md"
+          # Define the URL to the changelog in the Open Klant repository
+          Open Klant_CHANGELOG_URL="https://raw.githubusercontent.com/Open Klant/helm-charts/main/charts/promtail/CHANGELOG.md"
           
           # Fetch the changelog file
-          CHANGELOG_CONTENT=$(curl -s "$GRAFANA_CHANGELOG_URL")
+          CHANGELOG_CONTENT=$(curl -s "$Open Klant_CHANGELOG_URL")
 
           # Extract the changelog entry for the specific version from the dependency changelog
-          GRAFANA_VERSION="${{ steps.extract_grafana_version.outputs.grafana_version }}"
-          VERSION_CHANGELOG=$(echo "$CHANGELOG_CONTENT" | awk "/## $GRAFANA_VERSION/,/^## /" | sed '$d')
+          Open Klant_VERSION="${{ steps.extract_Open Klant_version.outputs.Open Klant_version }}"
+          VERSION_CHANGELOG=$(echo "$CHANGELOG_CONTENT" | awk "/## $Open Klant_VERSION/,/^## /" | sed '$d')
 
           # Verify that changelog data was retrieved
           if [ -z "$VERSION_CHANGELOG" ]; then
-            echo "No changelog entry found for Grafana version $GRAFANA_VERSION."
+            echo "No changelog entry found for Open Klant version $Open Klant_VERSION."
             exit 1
           fi
-          echo "Found changelog entry for Grafana version $GRAFANA_VERSION"
+          echo "Found changelog entry for Open Klant version $Open Klant_VERSION"
           echo "::set-output name=changelog::$VERSION_CHANGELOG"
 
       - name: Run chart-releaser with Version-Specific Changelog
@@ -70,7 +70,7 @@ jobs:
           skip_existing: true
           body: |
             # Release Notes
-            ### Grafana Changelog for version ${{ steps.extract_grafana_version.outputs.grafana_version }}
-            ${{ steps.fetch_grafana_changelog.outputs.changelog }}
+            ### Open Klant Changelog for version ${{ steps.extract_Open Klant_version.outputs.Open Klant_version }}
+            ${{ steps.fetch_Open Klant_changelog.outputs.changelog }}
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
