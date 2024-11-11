@@ -39,9 +39,32 @@ jobs:
           helm repo add kiss-adapter https://raw.githubusercontent.com/ICATT-Menselijk-Digitaal/podiumd-adapter/main/helm
           helm repo add kiss-elastic https://raw.githubusercontent.com/Klantinteractie-Servicesysteem/.github/main/docs/scripts/elastic
           
+      - name: Fetch PRs with Changelogs
+        id: fetch_prs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Fetch merged PRs from the current branch with changelog updates
+          PRS=$(gh pr list --state merged --search "label:dependencies label:changelog-update base:main" --json title,body,html_url)
+
+          # Initialize release notes
+          RELEASE_NOTES="### Dependency Updates with Changelogs\n\n"
+
+          # Loop through each PR and add its changelog to release notes
+          for pr in $(echo "$PRS" | jq -c '.[]'); do
+            TITLE=$(echo "$pr" | jq -r '.title')
+            BODY=$(echo "$pr" | jq -r '.body')
+            URL=$(echo "$pr" | jq -r '.html_url')
+            RELEASE_NOTES+="**$TITLE**\n$BODY\n[View PR]($URL)\n\n"
+          done
+
+          # Output the release notes
+          echo "::set-output name=notes::$RELEASE_NOTES"
+
       - name: Run chart-releaser
         uses: helm/chart-releaser-action@v1.6.0
-        with:
-          skip_existing: true
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+        with:
+          # Use the aggregated changelog notes from previous step
+          body: ${{ steps.fetch_prs.outputs.notes }}
