@@ -38,7 +38,23 @@ jobs:
           helm repo add kiss-frontend https://raw.githubusercontent.com/Klantinteractie-Servicesysteem/KISS-frontend/main/helm
           helm repo add kiss-adapter https://raw.githubusercontent.com/ICATT-Menselijk-Digitaal/podiumd-adapter/main/helm
           helm repo add kiss-elastic https://raw.githubusercontent.com/Klantinteractie-Servicesysteem/.github/main/docs/scripts/elastic
-          
+
+
+      - name: Fetch Grafana Promtail Changelog
+        id: fetch_promtail_changelog
+        run: |
+          # Define the URL to the changelog in the Grafana Promtail repository
+          PROMTAIL_CHANGELOG_URL="https://raw.githubusercontent.com/grafana/helm-charts/main/charts/promtail/CHANGELOG.md"
+
+          # Fetch the changelog file
+          PROMTAIL_CHANGELOG=$(curl -s $PROMTAIL_CHANGELOG_URL)
+
+          # Extract the most recent release notes from the changelog (customize as needed)
+          # This example assumes the changelog follows a common markdown format
+          LATEST_PROMTAIL_CHANGELOG=$(echo "$PROMTAIL_CHANGELOG" | awk '/## [0-9]+\.[0-9]+\.[0-9]+/ {print; exit}')
+
+          # Output the fetched changelog
+          echo "::set-output name=promtail_changelog::$LATEST_PROMTAIL_CHANGELOG"
       - name: Fetch PRs with Changelogs
         id: fetch_prs
         env:
