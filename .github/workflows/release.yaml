@@ -62,9 +62,11 @@ jobs:
         run: |
           # Fetch merged PRs from the current branch with changelog updates
           PRS=$(gh pr list --state merged --search "label:dependencies label:changelog-update base:main" --json title,body,url)
-
-          # Initialize release notes
-          RELEASE_NOTES="### Dependency Updates with Changelogs\n\n"
+          # Initialize release notes with a section for Promtail changelog
+          
+          RELEASE_NOTES="### Grafana Promtail Chart Changelog\n\n"
+          RELEASE_NOTES+="${{ steps.fetch_promtail_changelog.outputs.promtail_changelog }}\n\n"
+          RELEASE_NOTES+="### Dependency Updates with Changelogs\n\n"
 
           # Loop through each PR and add its changelog to release notes
           for pr in $(echo "$PRS" | jq -c '.[]'); do
