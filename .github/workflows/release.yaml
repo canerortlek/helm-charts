@@ -47,7 +47,7 @@ jobs:
         id: fetch_OpenKlant_changelog
         run: |
           # Define the URL to the changelog in the OpenKlant repository
-          OpenKlant_CHANGELOG_URL="https://raw.githubusercontent.com/OpenKlant/helm-charts/main/charts/promtail/CHANGELOG.md"
+          OpenKlant_CHANGELOG_URL="https://github.com/open-formulieren/open-forms/blob/master/CHANGELOG.rst#281-2024-10-29"
           
           # Fetch the changelog file
           CHANGELOG_CONTENT=$(curl -s "$OpenKlant_CHANGELOG_URL")
