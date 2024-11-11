@@ -45,7 +45,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # Fetch merged PRs from the current branch with changelog updates
-          PRS=$(gh pr list --state merged --search "label:dependencies label:changelog-update base:main" --json title,body,html_url)
+          PRS=$(gh pr list --state merged --search "label:dependencies label:changelog-update base:main" --json title,body,url)
 
           # Initialize release notes
           RELEASE_NOTES="### Dependency Updates with Changelogs\n\n"
