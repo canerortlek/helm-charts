@@ -70,7 +70,7 @@ jobs:
           for pr in $(echo "$PRS" | jq -c '.[]'); do
             TITLE=$(echo "$pr" | jq -r '.title')
             BODY=$(echo "$pr" | jq -r '.body')
-            URL=$(echo "$pr" | jq -r '.html_url')
+            URL=$(echo "$pr" | jq -r '.url')
             RELEASE_NOTES+="**$TITLE**\n$BODY\n[View PR]($URL)\n\n"
           done
 
