@@ -1,4 +1,4 @@
-name: Release Charts 
+name: Release Charts
 
 on:
   workflow_dispatch:
@@ -17,6 +17,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
       - name: Configure Git
         run: |
           git config user.name "$GITHUB_ACTOR"
@@ -24,65 +25,52 @@ jobs:
 
       - name: Set Chart and App Versions
         run: |
+          # Update the chart version and app version in Chart.yaml
           sed -i "s/^version: .*/version: ${{ github.event.inputs.release_version }}/" charts/podiumd/Chart.yaml
           sed -i "s/^appVersion: .*/appVersion: ${{ github.event.inputs.release_version }}/" charts/podiumd/Chart.yaml
 
-      - name: Add dependency chart repos
+      - name: Extract Grafana Version from README.md
+        id: extract_grafana_version
         run: |
-          helm repo add bitnami https://charts.bitnami.com/bitnami
-          helm repo add maykinmedia https://maykinmedia.github.io/charts
-          helm repo add opentelemetry https://open-telemetry.github.io/opentelemetry-helm-charts
-          helm repo add wiremind https://wiremind.github.io/wiremind-helm-charts
-          helm repo add dimpact https://Dimpact-Samenwerking.github.io/helm-charts
-          helm repo add elastic https://helm.elastic.co
-          helm repo add kiss-frontend https://raw.githubusercontent.com/Klantinteractie-Servicesysteem/KISS-frontend/main/helm
-          helm repo add kiss-adapter https://raw.githubusercontent.com/ICATT-Menselijk-Digitaal/podiumd-adapter/main/helm
-          helm repo add kiss-elastic https://raw.githubusercontent.com/Klantinteractie-Servicesysteem/.github/main/docs/scripts/elastic
-
-
-      - name: Fetch Grafana Promtail Changelog
-        id: fetch_promtail_changelog
-        run: |
-          # Define the URL to the changelog in the Grafana Promtail repository
-          PROMTAIL_CHANGELOG_URL="https://raw.githubusercontent.com/grafana/helm-charts/main/charts/promtail/CHANGELOG.md"
-
-          # Fetch the changelog file
-          PROMTAIL_CHANGELOG=$(curl -s $PROMTAIL_CHANGELOG_URL)
-
-          # Extract the most recent release notes from the changelog (customize as needed)
-          # This example assumes the changelog follows a common markdown format
-          LATEST_PROMTAIL_CHANGELOG=$(echo "$PROMTAIL_CHANGELOG" | awk '/## [0-9]+\.[0-9]+\.[0-9]+/ {print; exit}')
-
-          # Output the fetched changelog
-          echo "::set-output name=promtail_changelog::$LATEST_PROMTAIL_CHANGELOG"
-      - name: Fetch PRs with Changelogs
-        id: fetch_prs
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # Fetch merged PRs from the current branch with changelog updates
-          PRS=$(gh pr list --state merged --search "label:dependencies label:changelog-update base:main" --json title,body,url)
-          # Initialize release notes with a section for Promtail changelog
+          # Extract the version for Grafana from README.md
+          GRAFANA_VERSION=$(grep -A 1 -i "Grafana" README.md | awk '{print $2}' | head -n 1)
           
-          RELEASE_NOTES="### Grafana Promtail Chart Changelog\n\n"
-          RELEASE_NOTES+="${{ steps.fetch_promtail_changelog.outputs.promtail_changelog }}\n\n"
-          RELEASE_NOTES+="### Dependency Updates with Changelogs\n\n"
+          # Verify the extracted version and set it as an output
+          if [ -z "$GRAFANA_VERSION" ]; then
+            echo "Grafana version not found in README.md."
+            exit 1
+          fi
+          echo "Found Grafana version: $GRAFANA_VERSION"
+          echo "::set-output name=grafana_version::$GRAFANA_VERSION"
 
-          # Loop through each PR and add its changelog to release notes
-          for pr in $(echo "$PRS" | jq -c '.[]'); do
-            TITLE=$(echo "$pr" | jq -r '.title')
-            BODY=$(echo "$pr" | jq -r '.body')
-            URL=$(echo "$pr" | jq -r '.url')
-            RELEASE_NOTES+="**$TITLE**\n$BODY\n[View PR]($URL)\n\n"
-          done
+      - name: Fetch Grafana Changelog for Specific Version
+        id: fetch_grafana_changelog
+        run: |
+          # Define the URL to the changelog in the Grafana repository
+          GRAFANA_CHANGELOG_URL="https://raw.githubusercontent.com/grafana/helm-charts/main/charts/promtail/CHANGELOG.md"
+          
+          # Fetch the changelog file
+          CHANGELOG_CONTENT=$(curl -s "$GRAFANA_CHANGELOG_URL")
 
-          # Output the release notes
-          echo "::set-output name=notes::$RELEASE_NOTES"
+          # Extract the changelog entry for the specific version from the dependency changelog
+          GRAFANA_VERSION="${{ steps.extract_grafana_version.outputs.grafana_version }}"
+          VERSION_CHANGELOG=$(echo "$CHANGELOG_CONTENT" | awk "/## $GRAFANA_VERSION/,/^## /" | sed '$d')
 
-      - name: Run chart-releaser
+          # Verify that changelog data was retrieved
+          if [ -z "$VERSION_CHANGELOG" ]; then
+            echo "No changelog entry found for Grafana version $GRAFANA_VERSION."
+            exit 1
+          fi
+          echo "Found changelog entry for Grafana version $GRAFANA_VERSION"
+          echo "::set-output name=changelog::$VERSION_CHANGELOG"
+
+      - name: Run chart-releaser with Version-Specific Changelog
         uses: helm/chart-releaser-action@v1.6.0
+        with:
+          skip_existing: true
+          body: |
+            # Release Notes
+            ### Grafana Changelog for version ${{ steps.extract_grafana_version.outputs.grafana_version }}
+            ${{ steps.fetch_grafana_changelog.outputs.changelog }}
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-        with:
-          # Use the aggregated changelog notes from previous step
-          body: ${{ steps.fetch_prs.outputs.notes }}
