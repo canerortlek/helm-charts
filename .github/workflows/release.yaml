@@ -32,7 +32,8 @@ jobs:
         id: fetch_changelogs
         run: |
           # Fetch changelog from website 1
-          WEBSITE1_CHANGELOG=$(curl -s https://open-forms.readthedocs.io/en/latest/changelog.html | head -n 20)
+          WEBSITE1_HTML=$(curl -s https://open-forms.readthedocs.io/en/latest/changelog.html)
+          WEBSITE1_CHANGELOG=$(echo "$WEBSITE1_HTML" | xmllint --html --xpath '//div[contains(@class,"content")]/p' - 2>/dev/null | head -n 20)
           
           # Fetch changelog from website 2
           WEBSITE2_CHANGELOG=$(curl -s https://github.com/open-zaak/open-zaak/blob/main/CHANGELOG.rst | head -n 20)
