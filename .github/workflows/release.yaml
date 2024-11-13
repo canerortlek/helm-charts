@@ -27,11 +27,11 @@ jobs:
           sed -i "s/^version: .*/version: ${{ github.event.inputs.release_version }}/" charts/podiumd/Chart.yaml
           sed -i "s/^appVersion: .*/appVersion: ${{ github.event.inputs.release_version }}/" charts/podiumd/Chart.yaml
        
-      - name: Get commit messages since last release
+      - name: Get detailed commit information since last release
         id: get_commits
         run: |
           LAST_TAG=$(git describe --tags --abbrev=0)
-          COMMITS=$(git log ${LAST_TAG}..HEAD --pretty=format:"* %s" --no-merges)
+          COMMITS=$(git log ${LAST_TAG}..HEAD --pretty=format:"* %h - %s (%an, %ar)" --no-merges)
           # Escape newlines and special characters
           echo "commits<<EOF" >> $GITHUB_ENV
           echo "$COMMITS" >> $GITHUB_ENV
