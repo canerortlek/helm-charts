@@ -32,10 +32,10 @@ jobs:
         id: fetch_changelogs
         run: |
           # Fetch changelog from website 1
-          WEBSITE1_CHANGELOG=$(curl -s https://open-forms.readthedocs.io/en/latest/changelog.html | jq -r '.latest')
+          WEBSITE1_CHANGELOG=$(curl -s https://open-forms.readthedocs.io/en/latest/changelog.html | head -n 20)
           
           # Fetch changelog from website 2
-          WEBSITE2_CHANGELOG=$(curl -s https://github.com/open-zaak/open-zaak/blob/main/CHANGELOG.rst | jq -r '.latest')
+          WEBSITE2_CHANGELOG=$(curl -s https://github.com/open-zaak/open-zaak/blob/main/CHANGELOG.rst | head -n 20)
 
           # Aggregate changelogs into an environment variable
           echo "changelogs<<EOF" >> $GITHUB_ENV
