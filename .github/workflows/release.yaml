@@ -79,7 +79,7 @@ jobs:
           body: |
             ## Changes in this Release
             ${{ env.commits }}
-            ## External Changelogs
+            ## Changelogs
             ${{ env.changelogs }}
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
