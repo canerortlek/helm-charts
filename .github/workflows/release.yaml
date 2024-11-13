@@ -26,7 +26,13 @@ jobs:
         run: |
           sed -i "s/^version: .*/version: ${{ github.event.inputs.release_version }}/" charts/podiumd/Chart.yaml
           sed -i "s/^appVersion: .*/appVersion: ${{ github.event.inputs.release_version }}/" charts/podiumd/Chart.yaml
-
+       
+      - name: Get commit messages since last release
+        id: get_commits
+        run: |
+          LAST_TAG=$(git describe --tags --abbrev=0)
+          COMMITS=$(git log ${LAST_TAG}..HEAD --pretty=format:"* %s" --no-merges)
+          echo "commits=$COMMITS" >> $GITHUB_ENV
       - name: Add dependency chart repos
         run: |
           helm repo add bitnami https://charts.bitnami.com/bitnami
