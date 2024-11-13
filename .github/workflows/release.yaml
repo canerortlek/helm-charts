@@ -32,18 +32,17 @@ jobs:
         id: fetch_changelogs
         run: |
           # Fetch changelog from website 1
-          WEBSITE1_HTML=$(curl -s https://open-forms.readthedocs.io/en/latest/changelog.html)
-          WEBSITE1_CHANGELOG=$(echo "$WEBSITE1_HTML" | xmllint --html --xpath '//div[contains(@class,"content")]/p' - 2>/dev/null | head -n 20)
+          WEBSITE1_HTML=$(curl -s https://raw.githubusercontent.com/open-formulieren/open-forms/refs/heads/master/CHANGELOG.rst | head -n 20)
           
           # Fetch changelog from website 2
           WEBSITE2_CHANGELOG=$(curl -s https://raw.githubusercontent.com/open-zaak/open-zaak/main/CHANGELOG.rst | head -n 20)
 
           # Aggregate changelogs into an environment variable
           echo "changelogs<<EOF" >> $GITHUB_ENV
-          echo "### Website 1 Changelog" >> $GITHUB_ENV
+          echo "### Open Formulieren" >> $GITHUB_ENV
           echo "$WEBSITE1_CHANGELOG" >> $GITHUB_ENV
           echo "" >> $GITHUB_ENV
-          echo "### Website 2 Changelog" >> $GITHUB_ENV
+          echo "### Open Zaak" >> $GITHUB_ENV
           echo "$WEBSITE2_CHANGELOG" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
           
