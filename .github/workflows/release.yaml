@@ -36,7 +36,10 @@ jobs:
           
           # Fetch changelog from website 2
           WEBSITE2_CHANGELOG=$(curl -s https://raw.githubusercontent.com/open-zaak/open-zaak/main/CHANGELOG.rst | head -n 20)
-
+          
+          # Fetch changelog from website 2
+          WEBSITE3_CHANGELOG=$(curl -s https://raw.githubusercontent.com/maykinmedia/open-klant/refs/heads/master/CHANGELOG.rst | head -n 20)
+          
           # Aggregate changelogs into an environment variable
           echo "changelogs<<EOF" >> $GITHUB_ENV
           echo "### Open Formulieren" >> $GITHUB_ENV
@@ -44,6 +47,9 @@ jobs:
           echo "" >> $GITHUB_ENV
           echo "### Open Zaak" >> $GITHUB_ENV
           echo "$WEBSITE2_CHANGELOG" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+          echo "### Open Klant" >> $GITHUB_ENV
+          echo "$WEBSITE3_CHANGELOG" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
           
       - name: Add dependency chart repos
