@@ -27,14 +27,23 @@ jobs:
           sed -i "s/^version: .*/version: ${{ github.event.inputs.release_version }}/" charts/podiumd/Chart.yaml
           sed -i "s/^appVersion: .*/appVersion: ${{ github.event.inputs.release_version }}/" charts/podiumd/Chart.yaml
        
-      - name: Get detailed commit information since last release
-        id: get_commits
+
+      - name: Fetch changelogs from websites
+        id: fetch_changelogs
         run: |
-          LAST_TAG=$(git describe --tags --abbrev=0)
-          COMMITS=$(git log ${LAST_TAG}..HEAD --pretty=format:"* %h - %s (%an, %ar)" --no-merges)
-          # Escape newlines and special characters
-          echo "commits<<EOF" >> $GITHUB_ENV
-          echo "$COMMITS" >> $GITHUB_ENV
+          # Fetch changelog from website 1
+          WEBSITE1_CHANGELOG=$(curl -s https://open-forms.readthedocs.io/en/latest/changelog.html#id3 | jq -r '.latest')
+          
+          # Fetch changelog from website 2
+          WEBSITE2_CHANGELOG=$(curl -s https://github.com/open-zaak/open-zaak/blob/main/CHANGELOG.rst | jq -r '.latest')
+
+          # Aggregate changelogs into an environment variable
+          echo "changelogs<<EOF" >> $GITHUB_ENV
+          echo "### Website 1 Changelog" >> $GITHUB_ENV
+          echo "$WEBSITE1_CHANGELOG" >> $GITHUB_ENV
+          echo "" >> $GITHUB_ENV
+          echo "### Website 2 Changelog" >> $GITHUB_ENV
+          echo "$WEBSITE2_CHANGELOG" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
           
       - name: Add dependency chart repos
@@ -64,5 +73,8 @@ jobs:
           body: |
             ## Changes in this Release
             ${{ env.commits }}
+            
+            ## External Changelogs
+            ${{ env.changelogs }}
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
