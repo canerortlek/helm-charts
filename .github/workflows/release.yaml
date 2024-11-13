@@ -33,6 +33,7 @@ jobs:
           LAST_TAG=$(git describe --tags --abbrev=0)
           COMMITS=$(git log ${LAST_TAG}..HEAD --pretty=format:"* %s" --no-merges)
           echo "commits=$COMMITS" >> $GITHUB_ENV
+          
       - name: Add dependency chart repos
         run: |
           helm repo add bitnami https://charts.bitnami.com/bitnami
@@ -51,3 +52,14 @@ jobs:
           skip_existing: true
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        with:
+          tag_name: ${{ github.event.inputs.release_version }}
+          release_name: "Release ${{ github.event.inputs.release_version }}"
+          body: |
+            ## Changes in this Release
+            ${{ env.commits }}
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
