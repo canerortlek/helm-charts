@@ -32,7 +32,10 @@ jobs:
         run: |
           LAST_TAG=$(git describe --tags --abbrev=0)
           COMMITS=$(git log ${LAST_TAG}..HEAD --pretty=format:"* %s" --no-merges)
-          echo "commits=$COMMITS" >> $GITHUB_ENV
+          # Escape newlines and special characters
+          echo "commits<<EOF" >> $GITHUB_ENV
+          echo "$COMMITS" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
           
       - name: Add dependency chart repos
         run: |
