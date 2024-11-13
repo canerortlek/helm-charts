@@ -47,7 +47,7 @@ jobs:
           echo "" >> $GITHUB_ENV
           echo "### Open Zaak" >> $GITHUB_ENV
           echo "$WEBSITE2_CHANGELOG" >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
+          echo "" >> $GITHUB_ENV
           echo "### Open Klant" >> $GITHUB_ENV
           echo "$WEBSITE3_CHANGELOG" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
