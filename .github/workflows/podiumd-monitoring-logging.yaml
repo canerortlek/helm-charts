@@ -20,7 +20,7 @@ jobs:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Set Kubernetes Context
-        uses: azure/aks-set-context@v3
+        uses: azure/aks-set-context@v4
         with:
           resource-group: ${{ env.RESOURCE_GROUP }}
           cluster-name: ${{ env.CLUSTER_NAME }}
