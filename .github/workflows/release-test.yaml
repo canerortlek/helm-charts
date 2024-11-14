@@ -22,7 +22,7 @@ jobs:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
         run: |
           # Set the target repository and version (tag)
-          TARGET_REPO="grafana/grafana"
+          TARGET_REPO="grafana/loki"
           TAG_VERSION="${{ github.event.inputs.version }}"
 
           # Fetch the release content for the specified tag
