@@ -23,8 +23,9 @@ jobs:
           JSON_ARRAY=$(echo "$REPOSITORIES" | awk -v OFS=',' '{gsub(/,/, "\",\""); print "[\"" $0 "\"]"}')
           echo "json_repos=$JSON_ARRAY" >> $GITHUB_ENV
 
-  # Dynamically set matrix based on the parsed JSON array from the previous step
   create_release_jobs:
+    # Ensure this job has a `runs-on` specification
+    runs-on: ubuntu-latest
     needs: create_releases
     strategy:
       matrix:
