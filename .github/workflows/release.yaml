@@ -47,6 +47,7 @@ jobs:
           WEBSITE5_CHANGELOG=$(curl -s https://raw.githubusercontent.com/maykinmedia/objects-api/refs/heads/stable/2.4.x/CHANGELOG.rst | sed -n '5,20p')
           WEBSITE6_CHANGELOG=$(curl -s https://raw.githubusercontent.com/maykinmedia/objecttypes-api/refs/heads/master/CHANGELOG.rst | sed -n '5,20p')
           WEBSITE7_CHANGELOG=$(curl -s https://api.github.com/repos/maykinmedia/open-inwoner/releases/latest | jq -r '.body')
+          LATEST_TAG=$(curl -s https://api.github.com/repos/open-formulieren/open-forms/tags | jq -r '.[0].name')
           
           # Aggregate changelogs into an environment variable
           echo "changelogs<<EOF" >> $GITHUB_ENV
@@ -71,6 +72,11 @@ jobs:
           echo "### Open Inwoner" >> $GITHUB_ENV
           echo "$WEBSITE7_CHANGELOG" >> $GITHUB_ENV
           echo "" >> $GITHUB_ENV
+          
+          echo "### LATEST_TAG" >> $GITHUB_ENV
+          echo "$LATEST_TAG" >> $GITHUB_ENV
+          echo "" >> $GITHUB_ENV
+          
           echo "EOF" >> $GITHUB_ENV
           
       - name: Add dependency chart repos
