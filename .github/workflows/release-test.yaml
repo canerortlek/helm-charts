@@ -23,24 +23,14 @@ jobs:
           JSON_ARRAY=$(echo "$REPOSITORIES" | awk -v OFS=',' '{gsub(/,/, "\",\""); print "[\"" $0 "\"]"}')
           echo "json_repos=$JSON_ARRAY" >> $GITHUB_ENV
 
-      - name: Define matrix dynamically
-        uses: actions/github-script@v6
-        id: define_matrix
-        with:
-          script: |
-            // Read the JSON array from the environment variable
-            const jsonRepos = process.env.json_repos;
-            // Parse JSON string into an array for the matrix
-            const matrix = JSON.parse(jsonRepos);
-            // Set matrix as an output for GitHub Actions
-            return { matrix };
-
-      - name: Set matrix repository and tag variables
-        if: ${{ fromJson(steps.define_matrix.outputs.matrix).length > 0 }}
-        strategy:
-          matrix:
-            repo_tag: ${{ fromJson(steps.define_matrix.outputs.matrix) }}
-
+  # Dynamically set matrix based on the parsed JSON array from the previous step
+  create_release_jobs:
+    needs: create_releases
+    strategy:
+      matrix:
+        repo_tag: ${{ fromJson(needs.create_releases.outputs.json_repos) }}
+    
+    steps:
       - name: Parse repository and tag
         id: parse_repo_tag
         run: |
