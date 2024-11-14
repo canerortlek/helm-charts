@@ -40,14 +40,13 @@ jobs:
       - name: Fetch changelogs from websites
         id: fetch_changelogs
         run: |
-          # Fetch changelog from website 1
           WEBSITE1_CHANGELOG=$(curl -s https://raw.githubusercontent.com/open-formulieren/open-forms/refs/heads/master/CHANGELOG.rst | sed -n '5,20p')
-          
-          # Fetch changelog from website 2
-          WEBSITE2_CHANGELOG=$(curl -s https://raw.githubusercontent.com/open-zaak/open-zaak/main/CHANGELOG.rst | head -n 20)
-          
-          # Fetch changelog from website 2
-          WEBSITE3_CHANGELOG=$(curl -s https://raw.githubusercontent.com/maykinmedia/open-klant/refs/heads/master/CHANGELOG.rst | head -n 20)
+          WEBSITE2_CHANGELOG=$(curl -s https://raw.githubusercontent.com/open-zaak/open-zaak/main/CHANGELOG.rst | sed -n '5,20p')
+          WEBSITE3_CHANGELOG=$(curl -s https://raw.githubusercontent.com/maykinmedia/open-klant/refs/heads/master/CHANGELOG.rst | sed -n '5,20p')
+          WEBSITE4_CHANGELOG=$(curl -s https://raw.githubusercontent.com/open-zaak/open-notificaties/refs/heads/main/CHANGELOG.rst | sed -n '5,20p')
+          WEBSITE5_CHANGELOG=$(curl -s https://raw.githubusercontent.com/maykinmedia/objects-api/refs/heads/stable/2.4.x/CHANGELOG.rst | sed -n '5,20p')
+          WEBSITE6_CHANGELOG=$(curl -s https://raw.githubusercontent.com/maykinmedia/objecttypes-api/refs/heads/master/CHANGELOG.rst | sed -n '5,20p')
+          WEBSITE7_CHANGELOG=$(curl -s https://github.com/maykinmedia/open-inwoner/releases | sed -n '5,20p')
           
           # Aggregate changelogs into an environment variable
           echo "changelogs<<EOF" >> $GITHUB_ENV
@@ -59,6 +58,19 @@ jobs:
           echo "" >> $GITHUB_ENV
           echo "### Open Klant" >> $GITHUB_ENV
           echo "$WEBSITE3_CHANGELOG" >> $GITHUB_ENV
+          echo "" >> $GITHUB_ENV
+          echo "### Open Notificaties" >> $GITHUB_ENV
+          echo "$WEBSITE4_CHANGELOG" >> $GITHUB_ENV
+          echo "" >> $GITHUB_ENV
+          echo "### Objecten" >> $GITHUB_ENV
+          echo "$WEBSITE5_CHANGELOG" >> $GITHUB_ENV
+          echo "" >> $GITHUB_ENV
+          echo "### Objecttypen" >> $GITHUB_ENV
+          echo "$WEBSITE6_CHANGELOG" >> $GITHUB_ENV
+          echo "" >> $GITHUB_ENV
+          echo "### Open Inwoner" >> $GITHUB_ENV
+          echo "$WEBSITE7_CHANGELOG" >> $GITHUB_ENV
+          echo "" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
           
       - name: Add dependency chart repos
