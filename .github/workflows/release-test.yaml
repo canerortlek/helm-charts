@@ -40,11 +40,14 @@ jobs:
           # Extract the release content (body) from the response
           RELEASE_BODY=$(echo "$RELEASE" | jq -r '.body // "No release notes available for this version."')
 
-          # Escape newlines and special characters for GitHub Actions environment variable
-          ESCAPED_BODY=$(echo "$RELEASE_BODY" | jq -Rs .)
+          # Clean up the release body: Remove extra whitespace, newlines, and any unwanted characters
+          CLEANED_BODY=$(echo "$RELEASE_BODY" | sed 's/\\n/ /g' | sed 's/\\r/ /g' | sed 's/\\"//g')
 
-          # Set the escaped release body in an environment variable
-          echo "RELEASE_BODY=$ESCAPED_BODY" >> $GITHUB_ENV
+          # Clean any leading/trailing whitespace and handle multi-line format
+          CLEANED_BODY=$(echo "$CLEANED_BODY" | sed 's/^[ \t]*//;s/[ \t]*$//' | awk 'BEGIN{RS=""; ORS="\n\n"} {print $0}')
+
+          # Set cleaned release body in environment variable
+          echo "RELEASE_BODY=$CLEANED_BODY" >> $GITHUB_ENV
 
       - name: Create GitHub Release
         uses: actions/create-release@v1
