@@ -3,8 +3,8 @@ name: Create Release from Specific Tag
 on:
   workflow_dispatch:
     inputs:
-      version:
-        description: 'Tag version to release (e.g., v10.4.12)'
+      repos_versions:
+        description: 'List of repositories and versions (e.g., "grafana/grafana:v10.4.12,grafana/loki:v3.2.1")'
         required: true
 
 jobs:
@@ -12,6 +12,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    strategy:
+      matrix:
+        repo_version: ${{ fromJson(inputs.repos_versions) }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -21,9 +24,10 @@ jobs:
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
         run: |
-          # Set the target repository and version (tag)
-          TARGET_REPO="grafana/loki"
-          TAG_VERSION="${{ github.event.inputs.version }}"
+          # Extract repository and version from the matrix variable
+          REPO_VERSION=${{ matrix.repo_version }}
+          TARGET_REPO=$(echo $REPO_VERSION | cut -d ':' -f 1)
+          TAG_VERSION=$(echo $REPO_VERSION | cut -d ':' -f 2)
 
           # Fetch the release content for the specified tag
           RESPONSE=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
@@ -45,8 +49,8 @@ jobs:
       - name: Create or Update GitHub Release
         uses: actions/create-release@v1
         with:
-          tag_name: ${{ github.event.inputs.version }}
-          release_name: "Release ${{ github.event.inputs.version }}"
+          tag_name: ${{ matrix.repo_version }}  # Using the version from the matrix
+          release_name: "Release ${{ matrix.repo_version }}"
           body_path: ./release_body.txt
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
