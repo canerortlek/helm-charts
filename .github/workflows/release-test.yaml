@@ -6,7 +6,6 @@ on:
       release_version:
         description: 'Specify the release version number'
         required: true
-
 jobs:
   release:
     permissions:
@@ -17,97 +16,50 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          
-      - name: Configure Git
-        run: |
-          git config user.name "$GITHUB_ACTOR"
-          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
 
-      - name: Set Chart and App Versions
-        run: |
-          sed -i "s/^version: .*/version: ${{ github.event.inputs.release_version }}/" charts/podiumd/Chart.yaml
-          sed -i "s/^appVersion: .*/appVersion: ${{ github.event.inputs.release_version }}/" charts/podiumd/Chart.yaml
-
-    
-      - name: Fetch changelogs from websites
-        id: fetch_changelogs
-        run: |
-          WEBSITE1_CHANGELOG=$(curl -s https://raw.githubusercontent.com/open-formulieren/open-forms/refs/heads/master/CHANGELOG.rst | sed -n '5,20p')
-          WEBSITE2_CHANGELOG=$(curl -s https://raw.githubusercontent.com/open-zaak/open-zaak/main/CHANGELOG.rst | sed -n '5,20p')
-          WEBSITE3_CHANGELOG=$(curl -s https://raw.githubusercontent.com/maykinmedia/open-klant/refs/heads/master/CHANGELOG.rst | sed -n '5,20p')
-          WEBSITE4_CHANGELOG=$(curl -s https://raw.githubusercontent.com/open-zaak/open-notificaties/refs/heads/main/CHANGELOG.rst | sed -n '5,20p')
-          WEBSITE5_CHANGELOG=$(curl -s https://raw.githubusercontent.com/maykinmedia/objects-api/refs/heads/stable/2.4.x/CHANGELOG.rst | sed -n '5,20p')
-          WEBSITE6_CHANGELOG=$(curl -s https://raw.githubusercontent.com/maykinmedia/objecttypes-api/refs/heads/master/CHANGELOG.rst | sed -n '5,20p')
-          WEBSITE7_CHANGELOG=$(curl -s https://github.com/maykinmedia/open-inwoner/releases | sed -n '5,20p')
-          
-          # Aggregate changelogs into an environment variable
-          echo "changelogs<<EOF" >> $GITHUB_ENV
-          echo "### Open Formulieren" >> $GITHUB_ENV
-          echo "$WEBSITE1_CHANGELOG" >> $GITHUB_ENV
-          echo "" >> $GITHUB_ENV
-          echo "### Open Zaak" >> $GITHUB_ENV
-          echo "$WEBSITE2_CHANGELOG" >> $GITHUB_ENV
-          echo "" >> $GITHUB_ENV
-          echo "### Open Klant" >> $GITHUB_ENV
-          echo "$WEBSITE3_CHANGELOG" >> $GITHUB_ENV
-          echo "" >> $GITHUB_ENV
-          echo "### Open Notificaties" >> $GITHUB_ENV
-          echo "$WEBSITE4_CHANGELOG" >> $GITHUB_ENV
-          echo "" >> $GITHUB_ENV
-          echo "### Objecten" >> $GITHUB_ENV
-          echo "$WEBSITE5_CHANGELOG" >> $GITHUB_ENV
-          echo "" >> $GITHUB_ENV
-          echo "### Objecttypen" >> $GITHUB_ENV
-          echo "$WEBSITE6_CHANGELOG" >> $GITHUB_ENV
-          echo "" >> $GITHUB_ENV
-          echo "### Open Inwoner" >> $GITHUB_ENV
-          echo "$WEBSITE7_CHANGELOG" >> $GITHUB_ENV
-          echo "" >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
-          
-      - name: Add dependency chart repos
-        run: |
-          helm repo add bitnami https://charts.bitnami.com/bitnami
-          helm repo add maykinmedia https://maykinmedia.github.io/charts
-          helm repo add opentelemetry https://open-telemetry.github.io/opentelemetry-helm-charts
-          helm repo add wiremind https://wiremind.github.io/wiremind-helm-charts
-          helm repo add dimpact https://Dimpact-Samenwerking.github.io/helm-charts
-          helm repo add elastic https://helm.elastic.co
-          helm repo add kiss-frontend https://raw.githubusercontent.com/Klantinteractie-Servicesysteem/KISS-frontend/main/helm
-          helm repo add kiss-adapter https://raw.githubusercontent.com/ICATT-Menselijk-Digitaal/podiumd-adapter/main/helm
-          helm repo add kiss-elastic https://raw.githubusercontent.com/Klantinteractie-Servicesysteem/.github/main/docs/scripts/elastic
-      - name: Get existing release ID if it exists
+      - name: Get existing release ID
         id: get_release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # Check if the release already exists for the given version
           RELEASE_ID=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
             "https://api.github.com/repos/${{ github.repository }}/releases/tags/${{ github.event.inputs.release_version }}" \
             | jq -r '.id // empty')
-          
+
+          echo "Release ID: $RELEASE_ID"
           echo "release_id=$RELEASE_ID" >> $GITHUB_ENV
 
-      - name: Update existing release
+      - name: Get content of specific release (e.g., from grafana/grafana)
+        id: get_release_content
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Fetch content of a specific release from a different repo (e.g., grafana/grafana)
+          SPECIFIC_RELEASE_URL="https://api.github.com/repos/grafana/grafana/releases/tags/v${{ github.event.inputs.release_version }}"
+          
+          # Get the release body content (release notes)
+          RELEASE_BODY=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "$SPECIFIC_RELEASE_URL" | jq -r '.body // empty')
+
+          # Output the release notes content for debugging purposes
+          echo "Release body content: $RELEASE_BODY"
+
+          # Set the release body content as an environment variable to use later
+          echo "release_body_content=$RELEASE_BODY" >> $GITHUB_ENV
+
+      - name: Update existing GitHub Release
         if: env.release_id != ''
         run: |
-          echo "Updating existing release..."
+          echo "Updating the existing release with ID ${{ env.release_id }}"
+          
           curl -s -X PATCH \
             -H "Authorization: token $GITHUB_TOKEN" \
             -H "Content-Type: application/json" \
-            -d "{\"body\": \"## Commits in this Release\n${{ env.commits }}\n\n## External Changelogs\n${{ env.changelogs }}\"}" \
+            -d "$(jq -n --arg body "$RELEASE_BODY" \
+              '{body: $body}')" \
             "https://api.github.com/repos/${{ github.repository }}/releases/${{ env.release_id }}"
-        env:
-          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 
-      - name: Run chart-releaser
-        uses: helm/chart-releaser-action@v1.6.0
-        with:
-          skip_existing: true
-        env:
-          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-          
-
-      - name: Create release if it doesn't exist
+      - name: Create new GitHub Release
         if: env.release_id == ''
         uses: actions/create-release@v1
         with:
@@ -119,5 +71,8 @@ jobs:
 
             ## External Changelogs
             ${{ env.changelogs }}
+
+            ## Release Notes from Grafana
+            ${{ env.release_body_content }}
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
