@@ -2,6 +2,76 @@ apiVersion: v1
 entries:
   podiumd:
   - apiVersion: v2
+    appVersion: 2.9.10
+    created: "2024-11-14T13:21:02.595945173Z"
+    dependencies:
+    - condition: keycloak.enabled
+      name: keycloak
+      repository: '@bitnami'
+      version: 21.4.4
+    - condition: openldap.enabled
+      name: openldap
+      repository: '@dimpact'
+      tags:
+      - zaak
+      version: 1.0.2
+    - condition: clamav.enabled
+      name: clamav
+      repository: '@wiremind'
+      version: 3.2.0
+    - condition: brpmock.enabled
+      name: brpmock
+      repository: '@dimpact'
+      tags:
+      - contact
+      - zaak
+      version: ~1.2.4
+    - condition: openzaak.enabled
+      name: openzaak
+      repository: '@maykinmedia'
+      version: 1.5.2
+    - condition: opennotificaties.enabled
+      name: opennotificaties
+      repository: '@maykinmedia'
+      version: 1.5.1
+    - condition: objecten.enabled
+      name: objecten
+      repository: '@maykinmedia'
+      version: 2.4.4
+    - condition: objecttypen.enabled
+      name: objecttypen
+      repository: '@maykinmedia'
+      version: 1.1.3
+    - condition: openklant.enabled
+      name: openklant
+      repository: '@maykinmedia'
+      version: 1.3.5
+    - alias: openformulieren
+      condition: openformulieren.enabled
+      name: openforms
+      repository: '@maykinmedia'
+      version: 1.4.4
+    - condition: openinwoner.enabled
+      name: openinwoner
+      repository: '@maykinmedia'
+      tags:
+      - portaal
+      version: 1.5.2
+    - alias: kisselastic
+      condition: kisselastic.enabled
+      name: kiss-elastic
+      repository: '@kiss-elastic'
+      tags:
+      - contact
+      version: 1.0.0
+    description: PodiumD Helm chart
+    digest: 79ca4952409eee598b41fc8d7d369692de405c1afaf799ad732dc1a5bbaae985
+    name: podiumd
+    type: application
+    urls:
+    - https://github.com/canerortlek/helm-charts/releases/download/podiumd-2.9.10/podiumd-2.9.10.tgz
+    version: 2.9.10
+  - apiVersion: v2
     appVersion: 2.9.0
     created: "2024-11-11T15:14:57.27989818Z"
     dependencies:
@@ -141,4 +211,4 @@ entries:
     urls:
     - https://github.com/canerortlek/helm-charts/releases/download/podiumd-2.8.0/podiumd-2.8.0.tgz
     version: 2.8.0
-generated: "2024-11-11T15:14:57.279911265Z"
+generated: "2024-11-14T13:21:02.595960141Z"
