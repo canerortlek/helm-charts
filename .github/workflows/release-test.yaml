@@ -39,16 +39,14 @@ jobs:
           # Extract the release content (body) from the response
           RELEASE_BODY=$(echo "$RESPONSE" | jq -r '.body // "No release notes available for this tag."')
           
-          # Set release content in environment variable for later use
-          echo "RELEASE_BODY=$RELEASE_BODY" >> $GITHUB_ENV
+          # Save the release content to a file instead of an environment variable
+          echo "$RELEASE_BODY" > release_body.txt
 
       - name: Create or Update GitHub Release
         uses: actions/create-release@v1
         with:
           tag_name: ${{ github.event.inputs.version }}
           release_name: "Release ${{ github.event.inputs.version }}"
-          body: |
-            ## Release Notes for ${{ github.event.inputs.version }}
-            ${{ env.RELEASE_BODY }}
+          body_path: ./release_body.txt
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
