@@ -26,7 +26,20 @@ jobs:
         run: |
           sed -i "s/^version: .*/version: ${{ github.event.inputs.release_version }}/" charts/podiumd/Chart.yaml
           sed -i "s/^appVersion: .*/appVersion: ${{ github.event.inputs.release_version }}/" charts/podiumd/Chart.yaml
-       
+      
+      # Collect commit messages since the last tag
+      - name: Get commit messages since last tag
+        id: commit_messages
+        run: |
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [ -n "$LAST_TAG" ]; then
+            COMMITS=$(git log ${LAST_TAG}..HEAD --pretty=format:"* %s" --no-merges)
+          else
+            COMMITS=$(git log --pretty=format:"* %s" --no-merges)
+          fi
+          echo "commits<<EOF" >> $GITHUB_ENV
+          echo "$COMMITS" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
 
       - name: Fetch changelogs from websites
         id: fetch_changelogs
