@@ -46,7 +46,7 @@ jobs:
           WEBSITE4_CHANGELOG=$(curl -s https://raw.githubusercontent.com/open-zaak/open-notificaties/refs/heads/main/CHANGELOG.rst | sed -n '5,20p')
           WEBSITE5_CHANGELOG=$(curl -s https://raw.githubusercontent.com/maykinmedia/objects-api/refs/heads/stable/2.4.x/CHANGELOG.rst | sed -n '5,20p')
           WEBSITE6_CHANGELOG=$(curl -s https://raw.githubusercontent.com/maykinmedia/objecttypes-api/refs/heads/master/CHANGELOG.rst | sed -n '5,20p')
-          WEBSITE7_CHANGELOG=$(curl -s https://github.com/maykinmedia/open-inwoner/releases | sed -n '5,20p')
+          WEBSITE7_CHANGELOG=$(curl -s https://api.github.com/repos/maykinmedia/open-inwoner/releases/latest | jq -r '.body')
           
           # Aggregate changelogs into an environment variable
           echo "changelogs<<EOF" >> $GITHUB_ENV
