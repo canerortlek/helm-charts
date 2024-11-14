@@ -1,52 +1,63 @@
-name: Create Release from Specific Tag
+name: Multi-Repository Release Workflow
 
 on:
   workflow_dispatch:
     inputs:
-      version:
-        description: 'Tag version to release (e.g., v10.4.12)'
+      repositories:
+        description: 'Repositories and tags to release (format: repo1:tag1,repo2:tag2)'
         required: true
+        default: 'grafana/grafana:v10.4.12,another-org/another-repo:v2.3.4'
 
 jobs:
-  create_release:
+  create_releases:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+
+    strategy:
+      matrix:
+        repo_tag: ${{ fromJson(github.event.inputs.repositories) }}
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: Parse repository and tag
+        id: parse_repo_tag
+        run: |
+          # Parse the repository and tag from the input string
+          REPO_TAG="${{ matrix.repo_tag }}"
+          REPO=$(echo "$REPO_TAG" | cut -d':' -f1)
+          TAG=$(echo "$REPO_TAG" | cut -d':' -f2)
+          
+          # Export repository and tag as environment variables
+          echo "REPOSITORY=$REPO" >> $GITHUB_ENV
+          echo "TAG_VERSION=$TAG" >> $GITHUB_ENV
 
       - name: Get Release Content for Specified Tag
         id: get_release_content
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
         run: |
-          # Set the target repository and version (tag)
-          TARGET_REPO="grafana/grafana"
-          TAG_VERSION="${{ github.event.inputs.version }}"
-
-          # Fetch the release content for the specified tag
+          # Fetch the release content for the specified repository and tag
           RESPONSE=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
-            "https://api.github.com/repos/$TARGET_REPO/releases/tags/$TAG_VERSION")
+            "https://api.github.com/repos/$REPOSITORY/releases/tags/$TAG_VERSION")
 
           # Check if the tag exists by verifying the presence of an ID
           RELEASE_ID=$(echo "$RESPONSE" | jq -r '.id // empty')
           if [ -z "$RELEASE_ID" ]; then
-            echo "Error: Tag $TAG_VERSION does not exist in $TARGET_REPO."
+            echo "Error: Tag $TAG_VERSION does not exist in $REPOSITORY."
             exit 1
           fi
 
           # Extract the release content (body) from the response
           RELEASE_BODY=$(echo "$RESPONSE" | jq -r '.body // "No release notes available for this tag."')
           
-          # Save the release content to a file instead of an environment variable
+          # Save the release content to a file
           echo "$RELEASE_BODY" > release_body.txt
 
       - name: Create or Update GitHub Release
         uses: actions/create-release@v1
         with:
-          tag_name: ${{ github.event.inputs.version }}
-          release_name: "Release ${{ github.event.inputs.version }}"
+          tag_name: ${{ env.TAG_VERSION }}
+          release_name: "Release ${{ env.TAG_VERSION }}"
           body_path: ./release_body.txt
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
