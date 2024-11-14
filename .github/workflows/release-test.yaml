@@ -14,15 +14,37 @@ jobs:
     permissions:
       contents: write
 
-    strategy:
-      matrix:
-        repo_tag: ${{ fromJson(github.event.inputs.repositories) }}
-
     steps:
+      - name: Parse repositories input into JSON array
+        id: parse_repos
+        run: |
+          # Convert the comma-separated input string into a JSON array format
+          REPOSITORIES="${{ github.event.inputs.repositories }}"
+          JSON_ARRAY=$(echo "$REPOSITORIES" | awk -v OFS=',' '{gsub(/,/, "\",\""); print "[\"" $0 "\"]"}')
+          echo "json_repos=$JSON_ARRAY" >> $GITHUB_ENV
+
+      - name: Define matrix dynamically
+        uses: actions/github-script@v6
+        id: define_matrix
+        with:
+          script: |
+            // Read the JSON array from the environment variable
+            const jsonRepos = process.env.json_repos;
+            // Parse JSON string into an array for the matrix
+            const matrix = JSON.parse(jsonRepos);
+            // Set matrix as an output for GitHub Actions
+            return { matrix };
+
+      - name: Set matrix repository and tag variables
+        if: ${{ fromJson(steps.define_matrix.outputs.matrix).length > 0 }}
+        strategy:
+          matrix:
+            repo_tag: ${{ fromJson(steps.define_matrix.outputs.matrix) }}
+
       - name: Parse repository and tag
         id: parse_repo_tag
         run: |
-          # Parse the repository and tag from the input string
+          # Parse the repository and tag from the matrix string
           REPO_TAG="${{ matrix.repo_tag }}"
           REPO=$(echo "$REPO_TAG" | cut -d':' -f1)
           TAG=$(echo "$REPO_TAG" | cut -d':' -f2)
