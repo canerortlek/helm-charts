@@ -1,10 +1,13 @@
-name: workflow
+name: Create Release from Specific Version
 
 on:
   workflow_dispatch:
     inputs:
-      version:
-        description: 'Tag version to release (e.g., v10.4.12)'
+      grafana_version:
+        description: 'Release version for grafana/grafana (e.g., v10.4.12)'
+        required: true
+      loki_version:
+        description: 'Release version for loki/loki (e.g., v2.3.4)'
         required: true
 
 jobs:
@@ -16,39 +19,78 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Get Release Content for Specified Tag
-        id: get_release_content
+      - name: Get Release Content for Grafana
+        id: get_grafana_release
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
         run: |
-          # Set the target repository and version (tag)
           TARGET_REPO="maykinmedia/open-inwoner"
-          TAG_VERSION="${{ github.event.inputs.version }}"
+          RELEASE_VERSION="${{ github.event.inputs.grafana_version }}"
 
-          # Fetch the release content for the specified tag
+          # Fetch the release content for the specified version
           RESPONSE=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
-            "https://api.github.com/repos/$TARGET_REPO/releases/$TAG_VERSION")
+            "https://api.github.com/repos/$TARGET_REPO/releases")
 
-          # Check if the tag exists by verifying the presence of an ID
-          RELEASE_ID=$(echo "$RESPONSE" | jq -r '.id // empty')
-          if [ -z "$RELEASE_ID" ]; then
-            echo "Error: Tag $TAG_VERSION does not exist in $TARGET_REPO."
+          # Find the release with the matching version name
+          RELEASE=$(echo "$RESPONSE" | jq -r ".[] | select(.name == \"$RELEASE_VERSION\")")
+
+          # Check if the release was found
+          if [ -z "$RELEASE" ]; then
+            echo "Error: Release version $RELEASE_VERSION does not exist in $TARGET_REPO."
             exit 1
           fi
 
           # Extract the release content (body) from the response
-          RELEASE_BODY=$(echo "$RESPONSE" | jq -r '.body // "No release notes available for this tag."')
-          
-          # Set release content in environment variable for later use
-          echo "RELEASE_BODY=$RELEASE_BODY" >> $GITHUB_ENV
+          RELEASE_BODY=$(echo "$RELEASE" | jq -r '.body // "No release notes available for this version."')
 
-      - name: Create or Update GitHub Release
+          # Set release content in environment variable for later use
+          echo "GRAFANA_RELEASE_BODY=$RELEASE_BODY" >> $GITHUB_ENV
+
+      - name: Get Release Content for Loki
+        id: get_loki_release
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+        run: |
+          TARGET_REPO="grafana/grafana"
+          RELEASE_VERSION="${{ github.event.inputs.loki_version }}"
+
+          # Fetch the release content for the specified version
+          RESPONSE=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+            "https://api.github.com/repos/$TARGET_REPO/releases")
+
+          # Find the release with the matching version name
+          RELEASE=$(echo "$RESPONSE" | jq -r ".[] | select(.name == \"$RELEASE_VERSION\")")
+
+          # Check if the release was found
+          if [ -z "$RELEASE" ]; then
+            echo "Error: Release version $RELEASE_VERSION does not exist in $TARGET_REPO."
+            exit 1
+          fi
+
+          # Extract the release content (body) from the response
+          RELEASE_BODY=$(echo "$RELEASE" | jq -r '.body // "No release notes available for this version."')
+
+          # Set release content in environment variable for later use
+          echo "LOKI_RELEASE_BODY=$RELEASE_BODY" >> $GITHUB_ENV
+
+      - name: Create or Update GitHub Release for Grafana
         uses: actions/create-release@v1
         with:
-          tag_name: ${{ github.event.inputs.version }}
-          release_name: "Release ${{ github.event.inputs.version }}"
+          tag_name: ${{ github.event.inputs.grafana_version }}
+          release_name: "Release ${{ github.event.inputs.grafana_version }} for Grafana"
           body: |
-            ## Release Notes for ${{ github.event.inputs.version }}
-            ${{ env.RELEASE_BODY }}
+            ## Release Notes for ${{ github.event.inputs.grafana_version }}
+            ${{ env.GRAFANA_RELEASE_BODY }}
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+
+      - name: Create or Update GitHub Release for Loki
+        uses: actions/create-release@v1
+        with:
+          tag_name: ${{ github.event.inputs.loki_version }}
+          release_name: "Release ${{ github.event.inputs.loki_version }} for Loki"
+          body: |
+            ## Release Notes for ${{ github.event.inputs.loki_version }}
+            ${{ env.LOKI_RELEASE_BODY }}
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
