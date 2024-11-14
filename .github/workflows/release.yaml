@@ -111,7 +111,7 @@ jobs:
 
           # Fetch the release content for the verified tag
           VERIFIED_TAG_CONTENT=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
-            "https://api.github.com/repos/open-formulieren/open-forms/releases/tags/$LATEST_VERIFIED_TAG" | jq -r '.body // empty')
+            "https://api.github.com/repos/open-formulieren/open-forms/tags/$LATEST_VERIFIED_TAG" | jq -r '.body // empty')
           
           echo "VERIFIED_TAG_CONTENT=$VERIFIED_TAG_CONTENT" >> $GITHUB_ENV
           
