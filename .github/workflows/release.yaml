@@ -91,30 +91,6 @@ jobs:
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"   
 
-      - name: Get Latest Verified Tag and Content
-        id: get_verified_tag
-        env:
-          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-        run: |
-          # Fetch all tags and filter for verified ones, get the latest verified tag
-          LATEST_VERIFIED_TAG=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
-            "https://api.github.com/repos/open-formulieren/open-forms/tags" | jq -r '.[] | select(.verified) | .name' | head -n 1)
-
-          # If there's no verified tag, exit with a message
-          if [ -z "$LATEST_VERIFIED_TAG" ]; then
-            echo "No verified tag found."
-            exit 1
-          fi
-          
-          echo "Latest verified tag: $LATEST_VERIFIED_TAG"
-          echo "LATEST_VERIFIED_TAG=$LATEST_VERIFIED_TAG" >> $GITHUB_ENV
-
-          # Fetch the release content for the verified tag
-          VERIFIED_TAG_CONTENT=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
-            "https://api.github.com/repos/open-formulieren/open-forms/tags/$LATEST_VERIFIED_TAG" | jq -r '.body // empty')
-          
-          echo "VERIFIED_TAG_CONTENT=$VERIFIED_TAG_CONTENT" >> $GITHUB_ENV
-          
       - name: Create GitHub Release
         uses: actions/create-release@v1
         with:
@@ -125,7 +101,6 @@ jobs:
             ${{ env.commits }}
             ## Changelogs
             ${{ env.changelogs }}
-            ${{ env.VERIFIED_TAG_CONTENT }}
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 
