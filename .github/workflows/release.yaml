@@ -18,13 +18,6 @@ jobs:
         with:
           fetch-depth: 0
           
-      - name: Run chart-releaser
-        uses: helm/chart-releaser-action@v1.6.0
-        with:
-          skip_existing: true
-        env:
-          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"   
-          
       - name: Delete existing tag if it exists
         run: |
           TAG=${{ github.event.inputs.release_version }}
@@ -42,7 +35,6 @@ jobs:
         run: |
           sed -i "s/^version: .*/version: ${{ github.event.inputs.release_version }}/" charts/podiumd/Chart.yaml
           sed -i "s/^appVersion: .*/appVersion: ${{ github.event.inputs.release_version }}/" charts/podiumd/Chart.yaml
-      
 
       - name: Fetch changelogs from websites
         id: fetch_changelogs
@@ -105,3 +97,11 @@ jobs:
             ${{ env.changelogs }}
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+
+      - name: Run chart-releaser
+        uses: helm/chart-releaser-action@v1.6.0
+        with:
+          skip_existing: true
+        env:
+          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"   
+          
