@@ -6,7 +6,7 @@ on:
       repositories:
         description: 'Repositories and tags to release (format: repo1:tag1,repo2:tag2)'
         required: true
-        default: 'grafana/grafana:v10.4.12,another-org/another-repo:v2.3.4'
+        default: 'grafana/grafana:v10.4.12,open-zaak/open-zaak:1.14.0'
 
 jobs:
   create_releases:
@@ -18,9 +18,13 @@ jobs:
       - name: Parse repositories input into JSON array
         id: parse_repos
         run: |
-          # Convert the comma-separated input string into an array and output it as a string
+          # Convert the comma-separated input string into a JSON array format
           REPOSITORIES="${{ github.event.inputs.repositories }}"
-          REPO_ARRAY=$(echo "$REPOSITORIES" | tr ',' '\n' | jq -R . | jq -s .)
+          # Convert the string into a valid JSON array
+          REPO_ARRAY=$(echo "$REPOSITORIES" | tr ',' '\n' | jq -R . | jq -s '.')
+          
+          # Check if REPO_ARRAY is a valid JSON array
+          echo "REPO_ARRAY=$REPO_ARRAY" >> $GITHUB_ENV
           echo "json_repos=$REPO_ARRAY" >> $GITHUB_ENV
 
   create_release_jobs:
