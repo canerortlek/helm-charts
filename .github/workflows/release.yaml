@@ -32,7 +32,7 @@ jobs:
         id: fetch_changelogs
         run: |
           # Fetch changelog from website 1
-          WEBSITE1_CHANGELOG=$(curl -s https://raw.githubusercontent.com/open-formulieren/open-forms/refs/heads/master/CHANGELOG.rst | head -n 20)
+          WEBSITE1_CHANGELOG=$(curl -s https://raw.githubusercontent.com/open-formulieren/open-forms/refs/heads/master/CHANGELOG.rst | sed -n '5,20p')
           
           # Fetch changelog from website 2
           WEBSITE2_CHANGELOG=$(curl -s https://raw.githubusercontent.com/open-zaak/open-zaak/main/CHANGELOG.rst | head -n 20)
