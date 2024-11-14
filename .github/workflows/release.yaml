@@ -50,7 +50,7 @@ jobs:
           
           # Aggregate changelogs into an environment variable
           echo "changelogs<<EOF" >> $GITHUB_ENV
-          echo "### Open Formulieren" >> $GITHUB_ENV
+          echo "### TEST" >> $GITHUB_ENV
           echo "$WEBSITE1_CHANGELOG" >> $GITHUB_ENV
           echo "" >> $GITHUB_ENV
           echo "### Open Zaak" >> $GITHUB_ENV
