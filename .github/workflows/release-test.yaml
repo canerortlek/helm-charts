@@ -18,19 +18,18 @@ jobs:
       - name: Parse repositories input into JSON array
         id: parse_repos
         run: |
-          # Convert the comma-separated input string into a JSON array format
+          # Convert the comma-separated input string into an array and output it as a string
           REPOSITORIES="${{ github.event.inputs.repositories }}"
-          JSON_ARRAY=$(echo "$REPOSITORIES" | awk -v OFS=',' '{gsub(/,/, "\",\""); print "[\"" $0 "\"]"}')
-          echo "json_repos=$JSON_ARRAY" >> $GITHUB_ENV
+          REPO_ARRAY=$(echo "$REPOSITORIES" | tr ',' '\n' | jq -R . | jq -s .)
+          echo "json_repos=$REPO_ARRAY" >> $GITHUB_ENV
 
   create_release_jobs:
-    # Ensure this job has a `runs-on` specification
     runs-on: ubuntu-latest
     needs: create_releases
     strategy:
       matrix:
         repo_tag: ${{ fromJson(needs.create_releases.outputs.json_repos) }}
-    
+
     steps:
       - name: Parse repository and tag
         id: parse_repo_tag
