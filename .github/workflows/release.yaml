@@ -17,7 +17,14 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
+          
+      - name: Run chart-releaser
+        uses: helm/chart-releaser-action@v1.6.0
+        with:
+          skip_existing: true
+        env:
+          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"   
+          
       - name: Delete existing tag if it exists
         run: |
           TAG=${{ github.event.inputs.release_version }}
