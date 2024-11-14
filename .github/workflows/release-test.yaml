@@ -1,11 +1,18 @@
-name: Release Charts kopie
+name: Release Workflow
 
 on:
   workflow_dispatch:
-     inputs:
+    inputs:
       release_version:
-        description: 'Specify the release version number'
+        description: 'Version to release'
         required: true
+      target_repo:
+        description: 'Repository to get commits from (OWNER/REPO format)'
+        required: true
+      ref:
+        description: 'Branch or tag to get commits from'
+        default: 'main'
+
 jobs:
   release:
     permissions:
@@ -17,62 +24,31 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Get existing release ID
-        id: get_release
+      - name: Get Latest Commits from Specified Repository
+        id: get_commits
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
         run: |
-          # Check if the release already exists for the given version
-          RELEASE_ID=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
-            "https://api.github.com/repos/${{ github.repository }}/releases/tags/${{ github.event.inputs.release_version }}" \
-            | jq -r '.id // empty')
+          # Define the target repository and ref (branch/tag)
+          TARGET_REPO="${{ github.event.inputs.target_repo }}"
+          REF="${{ github.event.inputs.ref || 'main' }}"  # Default to 'main' if no ref is provided
 
-          echo "Release ID: $RELEASE_ID"
-          echo "release_id=$RELEASE_ID" >> $GITHUB_ENV
+          # Fetch the latest 5 commits from the specified repository and ref
+          LATEST_COMMITS=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+            "https://api.github.com/repos/$TARGET_REPO/commits?sha=$REF&per_page=5" | \
+            jq -r '.[] | "- " + .commit.message + " (" + .sha[0:7] + ")"')
 
-      - name: Get content of specific release (e.g., from grafana/grafana)
-        id: get_release_content
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # Fetch content of a specific release from a different repo (e.g., grafana/grafana)
-          SPECIFIC_RELEASE_URL="https://api.github.com/repos/grafana/grafana/releases/tags/v${{ github.event.inputs.release_version }}"
-          
-          # Get the release body content (release notes)
-          RELEASE_BODY=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "$SPECIFIC_RELEASE_URL" | jq -r '.body // empty')
+          # Check if commits were found; if not, exit with an error
+          if [ -z "$LATEST_COMMITS" ]; then
+            echo "No commits found for $TARGET_REPO at $REF."
+            exit 1
+          fi
 
-          # Output the release notes content for debugging purposes
-          echo "Release body content: $RELEASE_BODY"
+          # Output the formatted commit messages to an environment variable
+          echo "LATEST_COMMITS=$LATEST_COMMITS" >> $GITHUB_ENV
 
-          # Set the release body content as an environment variable to use later
-          echo "release_body_content=$RELEASE_BODY" >> $GITHUB_ENV
-
-      - name: Update existing GitHub Release
-        if: env.release_id != ''
-        run: |
-          echo "Updating the existing release with ID ${{ env.release_id }}"
-          
-          curl -s -X PATCH \
-            -H "Authorization: token $GITHUB_TOKEN" \
-            -H "Content-Type: application/json" \
-            -d "$(jq -n --arg body "$RELEASE_BODY" \
-              '{body: $body}')" \
-            "https://api.github.com/repos/${{ github.repository }}/releases/${{ env.release_id }}"
-
-      - name: Create new GitHub Release
-        if: env.release_id == ''
+      - name: Create or Update GitHub Release
         uses: actions/create-release@v1
         with:
           tag_name: ${{ github.event.inputs.release_version }}
-          release_name: "Release ${{ github.event.inputs.release_version }}"
-          body: |
-            ## Commits in this Release
-            ${{ env.commits }}
-
-            ## External Changelogs
-            ${{ env.changelogs }}
-
-            ## Release Notes from Grafana
-            ${{ env.release_body_content }}
-        env:
-          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          release_name: "Release ${{ github.event.inputs
