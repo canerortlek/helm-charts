@@ -91,8 +91,22 @@ jobs:
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"   
           
-      - name: Create GitHub Release
+      - name: Check if release already exists
+        id: check_release
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+        run: |
+          # Check if a release with the same version already exists
+          EXISTING_RELEASE_ID=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+            "https://api.github.com/repos/${{ github.repository }}/releases/tags/${{ github.event.inputs.release_version }}" \
+            | jq -r '.id // empty')
+          
+          # If it exists, output the release ID; otherwise, leave it empty
+          echo "existing_release_id=$EXISTING_RELEASE_ID" >> $GITHUB_ENV
+
+      - name: Create or Update GitHub Release
         uses: actions/create-release@v1
+        if: env.existing_release_id == '' # Only create a new release if it doesn't already exist
         with:
           tag_name: ${{ github.event.inputs.release_version }}
           release_name: "Release ${{ github.event.inputs.release_version }}"
@@ -104,3 +118,14 @@ jobs:
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 
+      - name: Update Existing GitHub Release
+        if: env.existing_release_id != '' # Only update if an existing release is found
+        run: |
+          curl -s -X PATCH \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -n --arg body "## Changes in this Release\n${{ env.commits }}\n\n## Changelogs\n${{ env.changelogs }}" \
+              '{body: $body}')" \
+            "https://api.github.com/repos/${{ github.repository }}/releases/${{ env.existing_release_id }}"
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
