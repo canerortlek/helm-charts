@@ -46,14 +46,15 @@ jobs:
           # Clean any leading/trailing whitespace and handle multi-line format
           CLEANED_BODY=$(echo "$CLEANED_BODY" | sed 's/^[ \t]*//;s/[ \t]*$//' | awk 'BEGIN{RS=""; ORS="\n\n"} {print $0}')
 
-          # Set cleaned release body in environment variable
-          echo "RELEASE_BODY=$CLEANED_BODY" >> $GITHUB_ENV
+          # Write cleaned release body to a file
+          echo "$CLEANED_BODY" > release_notes.txt
 
       - name: Create GitHub Release
         uses: actions/create-release@v1
         with:
           tag_name: ${{ github.event.inputs.version }}
           release_name: "Release ${{ github.event.inputs.version }}"
-          body: ${{ env.RELEASE_BODY }}
+          body: |
+            ${{ steps.get_release_content.outputs.RELEASE_BODY }}
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
