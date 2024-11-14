@@ -1,62 +1,54 @@
-name: Release Workflow
+name: Create Release from Specific Tag
 
 on:
   workflow_dispatch:
     inputs:
-      release_version:
-        description: 'Version to release'
+      version:
+        description: 'Tag version to release (e.g., v10.4.12)'
         required: true
-      target_repo:
-        description: 'Repository to get commits from (OWNER/REPO format)'
-        required: true
-      ref:
-        description: 'Branch or tag to get commits from'
-        default: 'main'
 
 jobs:
-  release:
+  create_release:
+    runs-on: ubuntu-latest
     permissions:
       contents: write
-    runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: Get Latest Commits from Specified Repository
-        id: get_commits
+      - name: Get Release Content for Specified Tag
+        id: get_release_content
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
         run: |
-          # Define the target repository and ref (branch/tag)
-          TARGET_REPO="${{ github.event.inputs.target_repo }}"
-          REF="${{ github.event.inputs.ref || 'main' }}"  # Default to 'main' if no ref is provided
+          # Set the target repository and version (tag)
+          TARGET_REPO="grafana/grafana"
+          TAG_VERSION="${{ github.event.inputs.version }}"
 
-          # Fetch the latest 5 commits from the specified repository and ref
-          LATEST_COMMITS=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
-            "https://api.github.com/repos/$TARGET_REPO/commits?sha=$REF&per_page=5" | \
-            jq -r '.[] | "- " + .commit.message + " (" + .sha[0:7] + ")"')
+          # Fetch the release content for the specified tag
+          RESPONSE=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+            "https://api.github.com/repos/$TARGET_REPO/releases/tags/$TAG_VERSION")
 
-          # Check if commits were found; if not, exit with an error
-          if [ -z "$LATEST_COMMITS" ]; then
-            echo "No commits found for $TARGET_REPO at $REF."
+          # Check if the tag exists by verifying the presence of an ID
+          RELEASE_ID=$(echo "$RESPONSE" | jq -r '.id // empty')
+          if [ -z "$RELEASE_ID" ]; then
+            echo "Error: Tag $TAG_VERSION does not exist in $TARGET_REPO."
             exit 1
           fi
 
-          # Output the formatted commit messages to an environment variable
-          echo "LATEST_COMMITS=$LATEST_COMMITS" >> $GITHUB_ENV
+          # Extract the release content (body) from the response
+          RELEASE_BODY=$(echo "$RESPONSE" | jq -r '.body // "No release notes available for this tag."')
+          
+          # Set release content in environment variable for later use
+          echo "RELEASE_BODY=$RELEASE_BODY" >> $GITHUB_ENV
 
       - name: Create or Update GitHub Release
         uses: actions/create-release@v1
         with:
-          tag_name: ${{ github.event.inputs.release_version }}
-          release_name: "Release ${{ github.event.inputs.release_version }}"
+          tag_name: ${{ github.event.inputs.version }}
+          release_name: "Release ${{ github.event.inputs.version }}"
           body: |
-            ## Latest Commits from ${{ github.event.inputs.target_repo }} (Branch/Tag: ${{ github.event.inputs.ref }})
-            ${{ env.LATEST_COMMITS }}
-
-            ## Additional Changelogs
-            ${{ env.changelogs }}
+            ## Release Notes for ${{ github.event.inputs.version }}
+            ${{ env.RELEASE_BODY }}
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
