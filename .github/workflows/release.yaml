@@ -39,7 +39,7 @@ jobs:
       - name: Fetch changelogs from websites
         id: fetch_changelogs
         run: |
-          WEBSITE1_CHANGELOG=$(curl -s https://raw.githubusercontent.com/open-formulieren/open-forms/refs/heads/master/CHANGELOG.rst | sed -n '5,20p')
+          WEBSITE1_CHANGELOG=$(curl -s https://github.com/open-formulieren/open-forms/blob/master/CHANGELOG.rst#281-2024-10-29)
           WEBSITE2_CHANGELOG=$(curl -s https://raw.githubusercontent.com/open-zaak/open-zaak/main/CHANGELOG.rst | sed -n '5,20p')
           WEBSITE3_CHANGELOG=$(curl -s https://raw.githubusercontent.com/maykinmedia/open-klant/refs/heads/master/CHANGELOG.rst | sed -n '5,20p')
           WEBSITE4_CHANGELOG=$(curl -s https://raw.githubusercontent.com/open-zaak/open-notificaties/refs/heads/main/CHANGELOG.rst | sed -n '5,20p')
