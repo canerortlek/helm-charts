@@ -19,7 +19,9 @@ jobs:
           fetch-depth: 0
 
       - name: Install yq
-        run: sudo apt-get install -y yq
+        run: | 
+          sudo apt-get update
+          sudo apt-get install -y yq
           
       - name: Delete existing tag if it exists
         run: |
