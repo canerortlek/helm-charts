@@ -86,12 +86,7 @@ jobs:
           
       - name: Get Website1 Changelog
         run: |
-          WEBSITE1_CHANGELOG=$(curl -s https://raw.githubusercontent.com/open-formulieren/open-forms/refs/heads/master/CHANGELOG.rst | awk '/^${{ env.OPENFORMS_IMAGE_TAG }} /,/ ${{ env.OPENFORMS_IMAGE_TAG_LATEST }} /')
-        
-      - name: Fetch changelogs from websites
-        id: fetch_changelogs_openforms
-        run: |
-          WEBSITE1_CHANGELOG=$(curl -s https://raw.githubusercontent.com/open-formulieren/open-forms/refs/heads/master/CHANGELOG.rst OPENFORMS_IMAGE_TAG
+          WEBSITE1_CHANGELOG=$(curl -s https://raw.githubusercontent.com/open-formulieren/open-forms/refs/heads/master/CHANGELOG.rst | awk '/^${{ env.OPENFORMS_IMAGE_TAG }} /,/^${{ env.OPENFORMS_IMAGE_TAG_LATEST }} /')
 
       - name: Fetch changelogs from websites
         id: fetch_changelogs_openzaak
