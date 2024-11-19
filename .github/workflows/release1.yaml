@@ -20,8 +20,7 @@ jobs:
 
       - name: Install yq
         run: | 
-          sudo apt-get update
-          sudo apt-get install -y yq
+          python -m pip install yq
           
       - name: Delete existing tag if it exists
         run: |
