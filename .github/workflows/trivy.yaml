@@ -8,21 +8,23 @@ jobs:
     name: Daily Vulnerability Scan
     runs-on: ubuntu-latest
     steps:
-      - name: Install Trivy
-        run: |
-          sudo apt-get update && sudo apt-get install -y wget
-          wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_0.45.0_Linux-64bit.deb
-          sudo dpkg -i trivy_0.45.0_Linux-64bit.deb
-
       - name: Pull Docker image
         run: docker pull openformulieren/open-forms
 
-      - name: Scan and Save Report
+      - name: Run Trivy scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: openformulieren/open-forms
+          format: table
+          ignore-unfixed: true
+
+      - name: Save Trivy report
         run: |
-          trivy image --format table openformulieren/open-forms > trivy_report.txt
+          echo "Generating Trivy vulnerability report..."
+          docker run --rm aquasec/trivy:latest image --ignore-unfixed --format table openformulieren/open-forms > trivy_report.txt
           cat trivy_report.txt
 
-      - name: Upload Report as Artifact
+      - name: Upload Trivy report as artifact
         uses: actions/upload-artifact@v3
         with:
           name: trivy-vulnerability-report
