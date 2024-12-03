@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Pull docker image
-        run: docker pull sample
+        run: docker pull docker pull openformulieren/open-forms
 
       - uses: lazy-actions/gitrivy@v3
         with:
