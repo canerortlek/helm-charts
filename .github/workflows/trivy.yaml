@@ -10,9 +10,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Pull docker image
-        run: docker pull openformulieren/open-forms
+        run: docker pull nginx
 
       - name: Run Trivy scan
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: openformulieren/open-forms
+          image-ref: nginx
