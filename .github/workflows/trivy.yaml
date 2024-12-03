@@ -8,24 +8,24 @@ jobs:
     name: Daily Vulnerability Scan
     runs-on: ubuntu-latest
     steps:
-      - name: Pull Docker image
-        run: docker pull openformulieren/open-forms
-
-      - name: Run Trivy scan
-        uses: aquasecurity/trivy-action@master
-        with:
-          image-ref: openformulieren/open-forms
-          format: table
-          ignore-unfixed: true
-
-      - name: Save Trivy report
+      - name: Pull Docker images
         run: |
-          echo "Generating Trivy vulnerability report..."
-          docker run --rm aquasec/trivy:latest image --ignore-unfixed --format table openformulieren/open-forms > trivy_report.txt
-          cat trivy_report.txt
+          docker pull openformulieren/open-forms
+          docker pull nginx
 
-      - name: Upload Trivy report as artifact
+      - name: Run Trivy scans and generate a single report
+        run: |
+          echo "Scanning openformulieren/open-forms..." > combined_report.txt
+          docker run --rm aquasec/trivy:latest image --ignore-unfixed --format table openformulieren/open-forms >> combined_report.txt
+          echo "" >> combined_report.txt
+          echo "Scanning nginx..." >> combined_report.txt
+          docker run --rm aquasec/trivy:latest image --ignore-unfixed --format table nginx >> combined_report.txt
+
+      - name: Display combined report
+        run: cat combined_report.txt
+
+      - name: Upload combined report as artifact
         uses: actions/upload-artifact@v3
         with:
-          name: trivy-vulnerability-report
-          path: trivy_report.txt
+          name: combined-trivy-report
+          path: combined_report.txt
