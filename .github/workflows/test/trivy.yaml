@@ -1,18 +1,24 @@
-name: Vulnerability Scan
-
+name: build
 on:
-  schedule:
-    - cron: '0 9 * * *'
-
+  push:
+    branches:
+      - main
+  pull_request:
 jobs:
-  scan:
-    name: Daily Vulnerability Scan
-    runs-on: ubuntu-latest
+  build:
+    name: Build
+    runs-on: ubuntu-20.04
     steps:
-      - name: Pull docker image
-        run: docker pull sample
-
-      - uses: lazy-actions/gitrivy@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Build an image from Dockerfile
+        run: docker build -t docker.io/my-organization/my-app:${{ github.sha }} .
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@0.28.0
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          image: sample
+          image-ref: 'docker.io/openformulieren/open-forms:${{ github.sha }}'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
