@@ -12,7 +12,7 @@ jobs:
       - name: Pull docker image
         run: docker pull openformulieren/open-forms
 
-      - uses: lazy-actions/gitrivy@v3
+      - name: Run Trivy scan
+        uses: aquasecurity/trivy-action@master
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          image: openformulieren/open-forms
+          image-ref: openformulieren/open-forms
