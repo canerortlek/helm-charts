@@ -17,19 +17,19 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Run Linter and Save Output
+      - name: Run Linter
         uses: github/super-linter/slim@v4
         env:
           VALIDATE_ALL_CODEBASE: false
           DEFAULT_BRANCH: main
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           LINTER_RULES_PATH: Verbeeld
-        with:
-          args: '--format compact' # Ensures concise output
-        continue-on-error: true # Continue even if linting fails
+        continue-on-error: true
+
+      - name: Save Linter Output
         run: |
-          # Run linter and save output
-          github/super-linter/slim@v4 | tee linter_output.txt
+          echo "Saving linter output to report file..."
+          github/super-linter/slim@v4 2>&1 | tee linter_output.txt
 
       - name: Display Linter Report
         run: cat linter_output.txt
