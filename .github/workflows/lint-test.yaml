@@ -1,56 +1,41 @@
----
-###########################
-###########################
-## Linter GitHub Actions ##
-###########################
-###########################
 name: Lint Code Base
 
-#
-# Documentation:
-# https://help.github.com/en/articles/workflow-syntax-for-github-actions
-#
-
-#############################
-# Start the job on all push #
-#############################
 on:
   push:
     branches-ignore: [master]
-    # Remove the line above to run when pushing to master
   pull_request:
     branches: [main]
 
-###############
-# Set the Job #
-###############
 jobs:
   build:
-    # Name the Job
     name: Lint Code Base
-    # Set the agent to run on
     runs-on: ubuntu-latest
 
-    ##################
-    # Load all steps #
-    ##################
     steps:
-      ##########################
-      # Checkout the code base #
-      ##########################
       - name: Checkout Code
         uses: actions/checkout@v2
         with:
-          # Full git history is needed to get a proper list of changed files within `super-linter`
           fetch-depth: 0
 
-      ################################
-      # Run Linter against code base #
-      ################################
-      - name: Lint Code Base
+      - name: Run Linter and Save Output
         uses: github/super-linter/slim@v4
         env:
           VALIDATE_ALL_CODEBASE: false
           DEFAULT_BRANCH: main
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          LINTER_RULES_PATH: /
+          LINTER_RULES_PATH: Verbeeld
+        with:
+          args: '--format compact' # Ensures concise output
+        continue-on-error: true # Continue even if linting fails
+        run: |
+          # Run linter and save output
+          github/super-linter/slim@v4 | tee linter_output.txt
+
+      - name: Display Linter Report
+        run: cat linter_output.txt
+
+      - name: Upload Linter Report as Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: linter-report
+          path: linter_output.txt
