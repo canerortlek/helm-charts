@@ -26,28 +26,28 @@ jobs:
       - name: Run Trivy scans and generate a single report
         run: |
           echo "Scanning openformulieren/open-forms..." > combined_report.txt
-          docker run --rm aquasec/trivy:latest image --ignore-unfixed --format table openformulieren/open-forms >> combined_report.txt
+          docker run --rm aquasec/trivy:latest image --ignore-unfixed --scanners vuln --format table openformulieren/open-forms >> combined_report.txt
           echo "" >> combined_report.txt
           echo "Scanning openzaak/open-zaak..." >> combined_report.txt
-          docker run --rm aquasec/trivy:latest image --ignore-unfixed --format table openzaak/open-zaak >> combined_report.txt
+          docker run --rm aquasec/trivy:latest image --ignore-unfixed --scanners vuln --format table openzaak/open-zaak >> combined_report.txt
           echo "Scanning openzaak/open-notificaties..." >> combined_report.txt
-          docker run --rm aquasec/trivy:latest image --ignore-unfixed --format table openzaak/open-notificaties >> combined_report.txt
+          docker run --rm aquasec/trivy:latest image --ignore-unfixed --scanners vuln --format table openzaak/open-notificaties >> combined_report.txt
           echo "Scanning maykinmedia/objects-api..." >> combined_report.txt
-          docker run --rm aquasec/trivy:latest image --ignore-unfixed --format table maykinmedia/objects-api >> combined_report.txt
+          docker run --rm aquasec/trivy:latest image --ignore-unfixed --scanners vuln --format table maykinmedia/objects-api >> combined_report.txt
           echo "Scanning maykinmedia/objecttypes-api..." >> combined_report.txt
-          docker run --rm aquasec/trivy:latest image --ignore-unfixed --format table maykinmedia/objecttypes-api >> combined_report.txt
+          docker run --rm aquasec/trivy:latest image --ignore-unfixed --scanners vuln --format table maykinmedia/objecttypes-api >> combined_report.txt
           echo "Scanning maykinmedia/open-inwoner..." >> combined_report.txt
-          docker run --rm aquasec/trivy:latest image --ignore-unfixed --format table maykinmedia/open-inwoner >> combined_report.txt
+          docker run --rm aquasec/trivy:latest image --ignore-unfixed --scanners vuln --format table maykinmedia/open-inwoner >> combined_report.txt
           echo "Scanning maykinmedia/open-klant..." >> combined_report.txt
-          docker run --rm aquasec/trivy:latest image --ignore-unfixed --format table maykinmedia/open-klant >> combined_report.txt
+          docker run --rm aquasec/trivy:latest image --ignore-unfixed --scanners vuln --format table maykinmedia/open-klant >> combined_report.txt
           echo "Scanning clamav/clamav..." >> combined_report.txt
-          docker run --rm aquasec/trivy:latest image --ignore-unfixed --format table clamav/clamav >> combined_report.txt
+          docker run --rm aquasec/trivy:latest image --ignore-unfixed --scanners vuln --format table clamav/clamav >> combined_report.txt
           echo "Scanning klantinteractie-servicesysteem/kiss-frontend..." >> combined_report.txt
-          docker run --rm aquasec/trivy:latest image --ignore-unfixed --format table klantinteractie-servicesysteem/kiss-frontend >> combined_report.txt
+          docker run --rm aquasec/trivy:latest image --ignore-unfixed --scanners vuln --format table klantinteractie-servicesysteem/kiss-frontend >> combined_report.txt
           echo "Scanning icatt-menselijk-digitaal/podiumd-adapter..." >> combined_report.txt
-          docker run --rm aquasec/trivy:latest image --ignore-unfixed --format table icatt-menselijk-digitaal/podiumd-adapter >> combined_report.txt
+          docker run --rm aquasec/trivy:latest image --ignore-unfixed --scanners vuln --format table icatt-menselijk-digitaal/podiumd-adapter >> combined_report.txt
           echo "Scanning klantinteractie-servicesysteem/kiss-elastic-sync..." >> combined_report.txt
-          docker run --rm aquasec/trivy:latest image --ignore-unfixed --format table klantinteractie-servicesysteem/kiss-elastic-sync >> combined_report.txt
+          docker run --rm aquasec/trivy:latest image --ignore-unfixed --scanners vuln --format table klantinteractie-servicesysteem/kiss-elastic-sync >> combined_report.txt
           
       - name: Display combined report
         run: cat combined_report.txt
