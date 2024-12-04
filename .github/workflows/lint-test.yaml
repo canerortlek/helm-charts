@@ -1,35 +1,56 @@
+make also a report for this code; i want to have a report of the output from this workflow; ---
+###########################
+###########################
+## Linter GitHub Actions ##
+###########################
+###########################
 name: Lint Code Base
 
-on:
-  workflow_dispatch:
+#
+# Documentation:
+# https://help.github.com/en/articles/workflow-syntax-for-github-actions
+#
 
+#############################
+# Start the job on all push #
+#############################
+on:
+  push:
+    branches-ignore: [master]
+    # Remove the line above to run when pushing to master
+  pull_request:
+    branches: [main]
+
+###############
+# Set the Job #
+###############
 jobs:
-  lint:
+  build:
+    # Name the Job
     name: Lint Code Base
+    # Set the agent to run on
     runs-on: ubuntu-latest
+
+    ##################
+    # Load all steps #
+    ##################
     steps:
+      ##########################
+      # Checkout the code base #
+      ##########################
       - name: Checkout Code
         uses: actions/checkout@v2
         with:
+          # Full git history is needed to get a proper list of changed files within super-linter
           fetch-depth: 0
 
-      - name: Run Linter and Generate Report
-        run: |
-          echo "Running linter..." > lint_report.txt
-          docker run --rm \
-            -e VALIDATE_ALL_CODEBASE=true \
-            -e DEFAULT_BRANCH=main \
-            -e GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} \
-            -e LINTER_RULES_PATH=.github/linter-rules \
-            -v "${{ github.workspace }}:/tmp/lint" \
-            -w /tmp/lint \
-            ghcr.io/github/super-linter:slim:v4 >> lint_report.txt
-
-      - name: Display Linter Report
-        run: cat lint_report.txt
-
-      - name: Upload Linter Report as Artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: lint-report
-          path: lint_report.txt
+      ################################
+      # Run Linter against code base #
+      ################################
+      - name: Lint Code Base
+        uses: github/super-linter/slim@v4
+        env:
+          VALIDATE_ALL_CODEBASE: false
+          DEFAULT_BRANCH: main
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          LINTER_RULES_PATH: Verbeeld 
