@@ -1,63 +1,40 @@
-###########################
-###########################
-## Linter GitHub Actions ##
-###########################
-###########################
 name: Lint Code Base
 
-#
-# Documentation:
-# https://help.github.com/en/articles/workflow-syntax-for-github-actions
-#
-
-#############################
-# Start the job on all push #
-#############################
 on:
   push:
     branches-ignore: [master]
-    # Remove the line above to run when pushing to master
   pull_request:
     branches: [main]
 
-###############
-# Set the Job #
-###############
 jobs:
   build:
-    # Name the Job
     name: Lint Code Base
-    # Set the agent to run on
     runs-on: ubuntu-latest
 
-    ##################
-    # Load all steps #
-    ##################
     steps:
-      ##########################
-      # Checkout the code base #
-      ##########################
       - name: Checkout Code
         uses: actions/checkout@v2
         with:
-          # Full git history is needed to get a proper list of changed files within super-linter
           fetch-depth: 0
 
-      ################################
-      # Run Linter against code base #
-      ################################
-      - name: Lint Code Base
-        uses: github/super-linter/slim@v4
+      - name: Run Linter and Save Output
         env:
           VALIDATE_ALL_CODEBASE: false
           DEFAULT_BRANCH: main
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          LINTER_RULES_PATH: Verbeeld 
-
-      - name: Save Linter Output
+          GITHUB_SHA: ${{ github.sha }}
+          LINTER_RULES_PATH: Verbeeld
         run: |
-          echo "Saving linter output to report file..." > linter_output.txt
-          ghcr.io/github/super-linter:slim-v4 > linter_output.txt
+          echo "Running Super-Linter and saving output..."
+          docker run --rm \
+            -e VALIDATE_ALL_CODEBASE=false \
+            -e DEFAULT_BRANCH=main \
+            -e GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} \
+            -e GITHUB_SHA=${{ github.sha }} \
+            -e LINTER_RULES_PATH=Verbeeld \
+            -v "${{ github.workspace }}:/tmp/lint" \
+            -w /tmp/lint \
+            ghcr.io/github/super-linter:slim:v4 > linter_output.txt
 
       - name: Display Linter Report
         run: cat linter_output.txt
