@@ -1,46 +1,35 @@
 name: Lint Code Base
 
 on:
-  push:
-    branches-ignore: [master]
-  pull_request:
-    branches: [main]
+  workflow_dispatch:
 
 jobs:
-  build:
+  lint:
     name: Lint Code Base
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
 
-      - name: Run Linter and Save Output
-        env:
-          VALIDATE_ALL_CODEBASE: false
-          DEFAULT_BRANCH: main
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_SHA: ${{ github.sha }}
-          LINTER_RULES_PATH: Verbeeld
+      - name: Run Linter and Generate Report
         run: |
-          echo "Running Super-Linter and saving output..."
+          echo "Running linter..." > lint_report.txt
           docker run --rm \
-            -e VALIDATE_ALL_CODEBASE=false \
+            -e VALIDATE_ALL_CODEBASE=true \
             -e DEFAULT_BRANCH=main \
             -e GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} \
-            -e GITHUB_SHA=${{ github.sha }} \
-            -e LINTER_RULES_PATH=Verbeeld \
+            -e LINTER_RULES_PATH=.github/linter-rules \
             -v "${{ github.workspace }}:/tmp/lint" \
             -w /tmp/lint \
-            ghcr.io/github/super-linter:slim:v4 > linter_output.txt
+            ghcr.io/github/super-linter:slim:v4 >> lint_report.txt
 
       - name: Display Linter Report
-        run: cat linter_output.txt
+        run: cat lint_report.txt
 
       - name: Upload Linter Report as Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: linter-report
-          path: linter_output.txt
+          name: lint-report
+          path: lint_report.txt
