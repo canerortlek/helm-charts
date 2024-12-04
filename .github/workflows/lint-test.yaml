@@ -24,12 +24,8 @@ jobs:
           DEFAULT_BRANCH: main
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           LINTER_RULES_PATH: Verbeeld
-        continue-on-error: true
-
-      - name: Save Linter Output
-        run: |
-          echo "Saving linter output to report file..."
-          github/super-linter/slim@v4 2>&1 | tee linter_output.txt
+        with:
+          args: --log-output linter_output.txt
 
       - name: Display Linter Report
         run: cat linter_output.txt
