@@ -21,8 +21,8 @@ jobs:
           echo "" >> combined_report.txt
           echo "Scanning nginx..." >> combined_report.txt
           docker run --rm aquasec/trivy:latest image --ignore-unfixed --format table nginx >> combined_report.txt
-          echo "Scanning openzaak..." >> combined_report.txt
-          docker run --rm aquasec/trivy:latest image --ignore-unfixed --format table openzaak >> combined_report.txt
+          echo "Scanning openzaak/open-zaak..." >> combined_report.txt
+          docker run --rm aquasec/trivy:latest image --ignore-unfixed --format table openzaak/open-zaak >> combined_report.txt
 
       - name: Display combined report
         run: cat combined_report.txt
