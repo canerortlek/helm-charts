@@ -42,12 +42,12 @@ jobs:
           docker run --rm aquasec/trivy:latest image --ignore-unfixed --scanners vuln --format table maykinmedia/open-klant >> combined_report.txt
           echo "Scanning clamav/clamav..." >> combined_report.txt
           docker run --rm aquasec/trivy:latest image --ignore-unfixed --scanners vuln --format table clamav/clamav >> combined_report.txt
-          echo "Scanning klantinteractie-servicesysteem/kiss-frontend..." >> combined_report.txt
-          docker run --rm aquasec/trivy:latest image --ignore-unfixed --scanners vuln --format table klantinteractie-servicesysteem/kiss-frontend >> combined_report.txt
-          echo "Scanning icatt-menselijk-digitaal/podiumd-adapter..." >> combined_report.txt
-          docker run --rm aquasec/trivy:latest image --ignore-unfixed --scanners vuln --format table icatt-menselijk-digitaal/podiumd-adapter >> combined_report.txt
-          echo "Scanning klantinteractie-servicesysteem/kiss-elastic-sync..." >> combined_report.txt
-          docker run --rm aquasec/trivy:latest image --ignore-unfixed --scanners vuln --format table klantinteractie-servicesysteem/kiss-elastic-sync >> combined_report.txt
+          echo "Scanning ghcr.io/klantinteractie-servicesysteem/kiss-frontend..." >> combined_report.txt
+          docker run --rm aquasec/trivy:latest image --ignore-unfixed --scanners vuln --format table ghcr.io/klantinteractie-servicesysteem/kiss-frontend >> combined_report.txt
+          echo "Scanning ghcr.io/icatt-menselijk-digitaal/podiumd-adapter..." >> combined_report.txt
+          docker run --rm aquasec/trivy:latest image --ignore-unfixed --scanners vuln --format table ghcr.io/icatt-menselijk-digitaal/podiumd-adapter >> combined_report.txt
+          echo "Scanning ghcr.io/klantinteractie-servicesysteem/kiss-elastic-sync..." >> combined_report.txt
+          docker run --rm aquasec/trivy:latest image --ignore-unfixed --scanners vuln --format table ghcr.io/klantinteractie-servicesysteem/kiss-elastic-sync >> combined_report.txt
           
       - name: Display combined report
         run: cat combined_report.txt
