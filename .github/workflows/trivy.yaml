@@ -18,9 +18,9 @@ jobs:
           docker pull maykinmedia/open-inwoner
           docker pull maykinmedia/open-klant
           docker pull clamav/clamav
-          docker pull ghcr.io/klantinteractie-servicesysteem/kiss-frontend:main-20241125115514-c78c151
-          docker pull ghcr.io/icatt-menselijk-digitaal/podiumd-adapter:main-20240806074842-b46bf67
-          docker pull ghcr.io/klantinteractie-servicesysteem/kiss-elastic-sync:main-20241127125636-14d8599
+          docker pull ghcr.io/klantinteractie-servicesysteem/kiss-frontend
+          docker pull ghcr.io/icatt-menselijk-digitaal/podiumd-adapter
+          docker pull ghcr.io/klantinteractie-servicesysteem/kiss-elastic-sync
           docker pull alpine
 
       - name: Run Trivy scans and generate a single report
