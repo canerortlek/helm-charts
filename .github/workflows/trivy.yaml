@@ -13,6 +13,7 @@ jobs:
           docker pull openformulieren/open-forms
           docker pull nginx
           docker pull openzaak/open-zaak
+          docker pull openzaak/open-notificaties
 
       - name: Run Trivy scans and generate a single report
         run: |
@@ -23,6 +24,8 @@ jobs:
           docker run --rm aquasec/trivy:latest image --ignore-unfixed --format table nginx >> combined_report.txt
           echo "Scanning openzaak/open-zaak..." >> combined_report.txt
           docker run --rm aquasec/trivy:latest image --ignore-unfixed --format table openzaak/open-zaak >> combined_report.txt
+          echo "Scanning openzaak/open-notificaties..." >> combined_report.txt
+          docker run --rm aquasec/trivy:latest image --ignore-unfixed --format table openzaak/open-notificaties >> combined_report.txt
 
       - name: Display combined report
         run: cat combined_report.txt
