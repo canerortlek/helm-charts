@@ -17,15 +17,19 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Run Linter
-        uses: github/super-linter/slim@v4
+      - name: Run Linter and Save Output
         env:
           VALIDATE_ALL_CODEBASE: false
           DEFAULT_BRANCH: main
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           LINTER_RULES_PATH: Verbeeld
-        with:
-          args: --log-output linter_output.txt
+        run: |
+          echo "Running Super-Linter and saving output..."
+          docker run --rm -e VALIDATE_ALL_CODEBASE=false \
+            -e DEFAULT_BRANCH=main \
+            -e GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} \
+            -e LINTER_RULES_PATH=Verbeeld \
+            ghcr.io/github/super-linter:slim-v4 > linter_output.txt
 
       - name: Display Linter Report
         run: cat linter_output.txt
