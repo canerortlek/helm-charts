@@ -399,4 +399,51 @@ entries:
     urls:
     - https://github.com/canerortlek/helm-charts/releases/download/podiumd-monitoring-logging-1.0.0-alpha.1/podiumd-monitoring-logging-1.0.0-alpha.1.tgz
     version: 1.0.0-alpha.1
-generated: "2024-11-18T13:15:37.748131766Z"
+  - apiVersion: v2
+    appVersion: "1.0"
+    created: "2024-12-11T15:07:27.911161887Z"
+    dependencies:
+    - alias: kubePrometheusStack
+      condition: kubePrometheusStack.enabled
+      name: kube-prometheus-stack
+      repository: https://prometheus-community.github.io/helm-charts
+      version: ~66.1.0
+    - alias: prometheusBlackboxExporter
+      condition: prometheusBlackboxExporter.enabled
+      name: prometheus-blackbox-exporter
+      repository: https://prometheus-community.github.io/helm-charts
+      version: ~9.1.0
+    - alias: x509CertificateExporter
+      condition: x509CertificateExporter.enabled
+      name: x509-certificate-exporter
+      repository: https://charts.enix.io
+      version: ~3.14.0
+    - condition: loki.enabled
+      name: loki
+      repository: https://grafana.github.io/helm-charts
+      version: ~6.6.2
+    - condition: promtail.enabled
+      name: promtail
+      repository: https://grafana.github.io/helm-charts
+      version: ~6.15.5
+    - alias: opentelemetryCollector
+      condition: opentelemetryCollector.enabled
+      name: opentelemetry-collector
+      repository: https://open-telemetry.github.io/opentelemetry-helm-charts
+      version: ~0.92.0
+    - condition: tempo.enabled
+      name: tempo
+      repository: https://grafana.github.io/helm-charts
+      version: ~1.7.3
+    - alias: helmExporter
+      condition: helmExporter.enabled
+      name: helm-exporter
+      repository: https://shanestarcher.com/helm-charts
+      version: ~1.2.16+77ad21d
+    description: PodiumD monitoring and logging Helm chart
+    digest: a9d72e37da8a20a56964bb15272d7ad5568cc50e3c29517b0116b723ac7f61be
+    name: podiumd-monitoring-logging
+    urls:
+    - https://github.com/canerortlek/helm-charts/releases/download/podiumd-monitoring-logging-1.0.0-alpha.1/podiumd-monitoring-logging-1.0.0-alpha.1.tgz
+    version: 1.0.0-alpha.1
+generated: "2024-12-11T15:07:27.911185562Z"
