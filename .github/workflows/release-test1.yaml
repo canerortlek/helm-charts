@@ -1,0 +1,156 @@
+name: Release Charts met changelogs
+on:
+  workflow_dispatch:
+     inputs:
+      release_version:
+        description: 'Specify the release version number'
+        required: true
+      
+jobs:
+  release:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install yq
+        run: | 
+          python -m pip install yq
+          
+      - name: Configure Git
+        run: |
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+
+      - name: Set Chart and App Versions
+        run: |
+          sed -i "s/^version: .*/version: ${{ github.event.inputs.release_version }}/" charts/podiumd/Chart.yaml
+          sed -i "s/^appVersion: .*/appVersion: ${{ github.event.inputs.release_version }}/" charts/podiumd/Chart.yaml
+          
+      - name: Get latest version of images from podiumd
+        id: get_latest_version
+        run: |
+          OPENZAAK_IMAGE_TAG_LATEST=$(git show -q HEAD:charts/podiumd/values.yaml | yq -r .openzaak.image.tag)
+          OPENFORMS_IMAGE_TAG_LATEST=$(git show -q HEAD:charts/podiumd/values.yaml | yq -r .openformulieren.image.tag)
+          OPENKLANT_IMAGE_TAG_LATEST=$(git show -q HEAD:charts/podiumd/values.yaml | yq -r .openklant.image.tag)
+          OPENNOTIFICATIES_IMAGE_TAG_LATEST=$(git show -q HEAD:charts/podiumd/values.yaml | yq -r .opennotificaties.image.tag)
+          OBJECTEN_IMAGE_TAG_LATEST=$(git show -q HEAD:charts/podiumd/values.yaml | yq -r .objecten.image.tag)
+          OBJECTTYPEN_IMAGE_TAG_LATEST=$(git show -q HEAD:charts/podiumd/values.yaml | yq -r .objecttypen.image.tag)
+          OPENINWONER_IMAGE_TAG_LATEST=$(git show -q HEAD:charts/podiumd/values.yaml | yq -r .openinwoner.image.tag)
+          echo "OPENFORMS_IMAGE_TAG_LATEST=$OPENFORMS_IMAGE_TAG_LATEST" >> $GITHUB_ENV
+          echo "OPENZAAK_IMAGE_TAG_LATEST=$OPENZAAK_IMAGE_TAG_LATEST" >> $GITHUB_ENV
+          echo "OPENKLANT_IMAGE_TAG_LATEST=$OPENKLANT_IMAGE_TAG_LATEST" >> $GITHUB_ENV
+          echo "OPENNOTIFICATIES_IMAGE_TAG_LATEST=$OPENNOTIFICATIES_IMAGE_TAG_LATEST" >> $GITHUB_ENV
+          echo "OBJECTEN_IMAGE_TAG_LATEST=$OBJECTEN_IMAGE_TAG_LATEST" >> $GITHUB_ENV
+          echo "OBJECTTYPEN_IMAGE_TAG_LATEST=$OBJECTTYPEN_IMAGE_TAG_LATEST" >> $GITHUB_ENV
+          echo "OPENINWONER_IMAGE_TAG_LATEST=$OPENINWONER_IMAGE_TAG_LATEST" >> $GITHUB_ENV
+          
+      - name: Fetch changelog of Open Formulieren
+        id: fetch_changelogs_openforms
+        run: |
+          OPENFORMS_CHANGELOG=$(curl -s https://raw.githubusercontent.com/open-formulieren/open-forms/refs/heads/master/CHANGELOG.rst | awk "/^${OPENFORMS_IMAGE_TAG_LATEST}/ {flag=1} /^[0-9]+\\.[0-9]+\\.[0-9]+/  && !/^${OPENFORMS_IMAGE_TAG_LATEST}/ {flag=0} flag")
+          echo "$OPENFORMS_CHANGELOG"
+          echo "OPENFORMS_CHANGELOG<<EOF" >> $GITHUB_ENV
+          echo "## Open Formulieren" >> $GITHUB_ENV
+          echo "$OPENFORMS_CHANGELOG" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+         
+      - name: Fetch changelogs of Open Zaak 
+        id: fetch_changelogs_openzaak
+        run: |
+          OPENZAAK_CHANGELOG=$(curl -s https://raw.githubusercontent.com/open-zaak/open-zaak/main/CHANGELOG.rst | awk "/^${OPENZAAK_IMAGE_TAG_LATEST}/ {flag=1} /^[0-9]+\\.[0-9]+\\.[0-9]+/  && !/^${OPENZAAK_IMAGE_TAG_LATEST}/ {flag=0} flag")
+          echo "$OPENZAAK_CHANGELOG"
+          echo "OPENZAAK_CHANGELOG<<EOF" >> $GITHUB_ENV
+          echo "## Open Zaak" >> $GITHUB_ENV
+          echo "$OPENZAAK_CHANGELOG" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+          
+      - name: Fetch changelog of Open Klant
+        id: fetch_changelogs_openklant
+        run: |
+          OPENKLANT_CHANGELOG=$(curl -s https://raw.githubusercontent.com/maykinmedia/open-klant/refs/heads/master/CHANGELOG.rst | awk "/^${OPENKLANT_IMAGE_TAG_LATEST}/ {flag=1} /^[0-9]+\\.[0-9]+\\.[0-9]+/  && !/^${OPENKLANT_IMAGE_TAG_LATEST}/ {flag=0} flag")
+          echo "$OPENKLANT_CHANGELOG"
+          echo "OPENKLANT_CHANGELOG<<EOF" >> $GITHUB_ENV
+          echo "## Open Klant" >> $GITHUB_ENV
+          echo "$OPENKLANT_CHANGELOG" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+          
+      - name: Fetch changelogs of Open Notificaties
+        id: fetch_changelogs_opennotificaties
+        run: |
+          OPENNOTIFICATIES_CHANGELOG=$(curl -s https://raw.githubusercontent.com/open-zaak/open-notificaties/refs/heads/main/CHANGELOG.rst | awk "/^${OPENNOTIFICATIES_IMAGE_TAG_LATEST}/ {flag=1} /^[0-9]+\\.[0-9]+\\.[0-9]+/  && !/^${OPENNOTIFICATIES_IMAGE_TAG_LATEST}/ {flag=0} flag")
+          echo "$OPENNOTIFICATIES_CHANGELOG"
+          echo "OPENNOTIFICATIES_CHANGELOG<<EOF" >> $GITHUB_ENV
+          echo "## Open Notificaties" >> $GITHUB_ENV
+          echo "$OPENNOTIFICATIES_CHANGELOG" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+          
+      - name: Fetch changelogs of Objecten
+        id: fetch_changelogs_objecten
+        run: |
+           OBJECTEN_CHANGELOG=$(curl -s https://raw.githubusercontent.com/maykinmedia/objects-api/refs/heads/stable/2.4.x/CHANGELOG.rst | awk "/^${OBJECTEN_IMAGE_TAG_LATEST}/ {flag=1} /^[0-9]+\\.[0-9]+\\.[0-9]+/  && !/^${OBJECTEN_IMAGE_TAG_LATEST}/ {flag=0} flag")
+           echo "$OBJECTEN_CHANGELOG"
+           echo "OBJECTEN_CHANGELOG<<EOF" >> $GITHUB_ENV
+           echo "## Objecten" >> $GITHUB_ENV
+           echo "$OBJECTEN_CHANGELOG" >> $GITHUB_ENV
+           echo "EOF" >> $GITHUB_ENV
+           
+      - name: Fetch changelogs of Objecttypen
+        id: fetch_changelogs_objecttypen
+        run: |
+          OBJECTTYPEN_CHANGELOG=$(curl -s https://raw.githubusercontent.com/maykinmedia/objecttypes-api/refs/heads/master/CHANGELOG.rst | awk "/^${OBJECTTYPEN_IMAGE_TAG_LATEST}/ {flag=1} /^[0-9]+\\.[0-9]+\\.[0-9]+/  && !/^${OBJECTTYPEN_IMAGE_TAG_LATEST}/ {flag=0} flag")
+          echo "$OBJECTTYPEN_CHANGELOG"
+          echo "OBJECTTYPEN_CHANGELOG<<EOF" >> $GITHUB_ENV
+          echo "## Objecttypen" >> $GITHUB_ENV
+          echo "$OBJECTTYPEN_CHANGELOG" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+          
+      - name: Fetch changelogs of Open Inwoner
+        id: fetch_changelogs_openinwoner
+        run: |
+          OPENINWONER_CHANGELOG=$(curl -s https://api.github.com/repos/maykinmedia/open-inwoner/releases/latest | jq -r '"## Version: \(.tag_name)\n\n\(.body)"')
+          echo "$OPENINWONER_CHANGELOG"
+          echo "OPENINWONER_CHANGELOG<<EOF" >> $GITHUB_ENV
+          echo "## Open Inwoner" >> $GITHUB_ENV
+          echo "$OPENINWONER_CHANGELOG" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: Add dependency chart repos
+        run: |
+          helm repo add bitnami https://charts.bitnami.com/bitnami
+          helm repo add maykinmedia https://maykinmedia.github.io/charts
+          helm repo add opentelemetry https://open-telemetry.github.io/opentelemetry-helm-charts
+          helm repo add wiremind https://wiremind.github.io/wiremind-helm-charts
+          helm repo add dimpact https://Dimpact-Samenwerking.github.io/helm-charts
+          helm repo add elastic https://helm.elastic.co
+          helm repo add kiss-frontend https://raw.githubusercontent.com/Klantinteractie-Servicesysteem/KISS-frontend/main/helm
+          helm repo add kiss-adapter https://raw.githubusercontent.com/ICATT-Menselijk-Digitaal/podiumd-adapter/main/helm
+          helm repo add kiss-elastic https://raw.githubusercontent.com/Klantinteractie-Servicesysteem/.github/main/docs/scripts/elastic
+
+      - name: Run chart-releaser
+        uses: helm/chart-releaser-action@v1.6.0
+        with:
+          skip_existing: true
+        env:
+          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"   
+
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        with:
+          tag_name: ${{ github.event.inputs.release_version }}
+          release_name: "Release ${{ github.event.inputs.release_version }}"
+          body: |
+            # Changelogs
+            ${{ env.OPENFORMS_CHANGELOG }}
+            ${{ env.OPENZAAK_CHANGELOG }}
+            ${{ env.OPENKLANT_CHANGELOG }}
+            ${{ env.OPENNOTIFICATIES_CHANGELOG }}
+            ${{ env.OBJECTEN_CHANGELOG }}
+            ${{ env.OBJECTTYPEN_CHANGELOG }}
+            ${{ env.OPENINWONER_CHANGELOG }}
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
