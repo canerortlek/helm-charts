@@ -124,7 +124,8 @@ jobs:
       - name: Fetch changelogs of KISS
         id: fetch_changelogs_kiss
         run: |
-          KISS_CHANGELOG=$(curl -s https://api.github.com/repos/Klantinteractie-Servicesysteem/KISS-frontend/releases/${KISS_IMAGE_TAG_LATEST} | jq -r '"## Version: \(.tag_name)\n\n\(.body)
+          KISS_CHANGELOG=$(curl -s https://api.github.com/repos/Klantinteractie-Servicesysteem/KISS-frontend/releases | \
+            jq -r --arg version "${KISS_IMAGE_TAG_LATEST}" '.[] | select(.tag_name == $version) | "## Version: \(.tag_name)\n\n\(.body)"')
           echo "$KISS_CHANGELOG"
           echo "KISS_CHANGELOG<<EOF" >> $GITHUB_ENV
           echo "## KISS" >> $GITHUB_ENV
