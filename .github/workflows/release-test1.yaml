@@ -41,6 +41,7 @@ jobs:
           OBJECTEN_IMAGE_TAG_LATEST=$(git show -q HEAD:charts/podiumd/values.yaml | yq -r .objecten.image.tag)
           OBJECTTYPEN_IMAGE_TAG_LATEST=$(git show -q HEAD:charts/podiumd/values.yaml | yq -r .objecttypen.image.tag)
           OPENINWONER_IMAGE_TAG_LATEST=$(git show -q HEAD:charts/podiumd/values.yaml | yq -r .openinwoner.image.tag)
+          KISS_IMAGE_TAG_LATEST=$(git show -q HEAD:charts/podiumd/values.yaml | yq -r .frontend.image.tag)
           echo "OPENFORMS_IMAGE_TAG_LATEST=$OPENFORMS_IMAGE_TAG_LATEST" >> $GITHUB_ENV
           echo "OPENZAAK_IMAGE_TAG_LATEST=$OPENZAAK_IMAGE_TAG_LATEST" >> $GITHUB_ENV
           echo "OPENKLANT_IMAGE_TAG_LATEST=$OPENKLANT_IMAGE_TAG_LATEST" >> $GITHUB_ENV
@@ -48,6 +49,7 @@ jobs:
           echo "OBJECTEN_IMAGE_TAG_LATEST=$OBJECTEN_IMAGE_TAG_LATEST" >> $GITHUB_ENV
           echo "OBJECTTYPEN_IMAGE_TAG_LATEST=$OBJECTTYPEN_IMAGE_TAG_LATEST" >> $GITHUB_ENV
           echo "OPENINWONER_IMAGE_TAG_LATEST=$OPENINWONER_IMAGE_TAG_LATEST" >> $GITHUB_ENV
+          echo "KISS_TAG_LATEST=$KISS_IMAGE_TAG_LATEST" >> $GITHUB_ENV
           
       - name: Fetch changelog of Open Formulieren
         id: fetch_changelogs_openforms
@@ -122,7 +124,17 @@ jobs:
       - name: Fetch changelogs of KISS
         id: fetch_changelogs_kiss
         run: |
-          KISS_CHANGELOG=$(curl -s https://api.github.com/repos/Klantinteractie-Servicesysteem/KISS-frontend/releases/latest | jq -r '"## Version: \(.tag_name)\n\n\(.body)"')
+          RELEASE_VERSION="${KISS_IMAGE_TAG_LATEST}"
+          KISS_RELEASE_URL="https://api.github.com/repos/Klantinteractie-Servicesysteem/KISS-frontend/releases/tags/${RELEASE_VERSION}"
+    
+          # Fetch the changelog for the specified version
+          KISS_CHANGELOG=$(curl -s $KISS_RELEASE_URL | jq -r '"## Version: \(.tag_name)\n\n\(.body)"')
+
+          if [[ "$KISS_CHANGELOG" == "## Version: null" ]]; then
+          echo "Error: Release version '${RELEASE_VERSION}' not found."
+          exit 1
+          fi
+
           echo "$KISS_CHANGELOG"
           echo "KISS_CHANGELOG<<EOF" >> $GITHUB_ENV
           echo "## KISS" >> $GITHUB_ENV
