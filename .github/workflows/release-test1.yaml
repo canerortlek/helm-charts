@@ -162,5 +162,6 @@ jobs:
             ${{ env.OBJECTEN_CHANGELOG }}
             ${{ env.OBJECTTYPEN_CHANGELOG }}
             ${{ env.OPENINWONER_CHANGELOG }}
+            ${{ env.KISS_CHANGELOG }}
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
