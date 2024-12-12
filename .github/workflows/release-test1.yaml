@@ -41,7 +41,7 @@ jobs:
           OBJECTEN_IMAGE_TAG_LATEST=$(git show -q HEAD:charts/podiumd/values.yaml | yq -r .objecten.image.tag)
           OBJECTTYPEN_IMAGE_TAG_LATEST=$(git show -q HEAD:charts/podiumd/values.yaml | yq -r .objecttypen.image.tag)
           OPENINWONER_IMAGE_TAG_LATEST=$(git show -q HEAD:charts/podiumd/values.yaml | yq -r .openinwoner.image.tag)
-          KISS_IMAGE_TAG_LATEST=$(git show -q HEAD:charts/podiumd/values.yaml | yq -r .frontend.image.tag)
+          KISS_IMAGE_TAG_LATEST=$(git show -q HEAD:charts/podiumd/values.yaml | yq -r .kiss.frontend.image.tag)
           echo "OPENFORMS_IMAGE_TAG_LATEST=$OPENFORMS_IMAGE_TAG_LATEST" >> $GITHUB_ENV
           echo "OPENZAAK_IMAGE_TAG_LATEST=$OPENZAAK_IMAGE_TAG_LATEST" >> $GITHUB_ENV
           echo "OPENKLANT_IMAGE_TAG_LATEST=$OPENKLANT_IMAGE_TAG_LATEST" >> $GITHUB_ENV
