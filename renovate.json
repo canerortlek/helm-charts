@@ -1,9 +1,17 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:recommended"
+    "config:base"
   ],
   "helmv3": {
     "enabled": true
-  }
-}
+  },
+  "packageRules": [
+    {
+      "matchManagers": ["helmv3"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "helm dependencies",
+      "groupSlug": "helm-deps"
+    }
+  ]
+} 
