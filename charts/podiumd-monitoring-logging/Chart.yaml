@@ -7,34 +7,34 @@ appVersion: "1.0"
 dependencies:
   - name: kube-prometheus-stack
     alias: kubePrometheusStack
-    version: "~66.1.0"
+    version: "~66.7.0"
     repository: "https://prometheus-community.github.io/helm-charts"
     condition: kubePrometheusStack.enabled
   - name: prometheus-blackbox-exporter
     alias: prometheusBlackboxExporter
-    version: "~9.1.0"
+    version: "~9.8.0"
     repository: "https://prometheus-community.github.io/helm-charts"
     condition: prometheusBlackboxExporter.enabled 
   - name: x509-certificate-exporter
     alias: x509CertificateExporter
-    version: "~3.14.0"
+    version: "~3.19.0"
     repository: "https://charts.enix.io"
     condition: x509CertificateExporter.enabled
   - name: loki
-    version: "~6.6.2"
+    version: "~6.32.0"
     repository: "https://grafana.github.io/helm-charts"
     condition: loki.enabled
   - name: promtail
-    version: "~6.15.5"
+    version: "~6.17.0"
     repository: "https://grafana.github.io/helm-charts"
     condition: promtail.enabled
   - name: opentelemetry-collector
     alias: opentelemetryCollector
-    version: "~0.92.0"
+    version: "~0.129.0"
     repository: "https://open-telemetry.github.io/opentelemetry-helm-charts"
     condition: opentelemetryCollector.enabled
   - name: tempo
-    version: "~1.7.3"
+    version: "~1.23.0"
     repository: "https://grafana.github.io/helm-charts"
     condition: tempo.enabled
   - name: helm-exporter
